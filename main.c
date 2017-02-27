@@ -9,6 +9,7 @@
 #include <xc.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "configBits.h"
 #include "constants.h"
 #include "lcd.h"
@@ -18,11 +19,13 @@
 void set_time(void);
 void update_time(unsigned char[]);
 void delay(int);
-void init_operation(unsigned char[], unsigned char[]);
+void init_operation(unsigned char[], unsigned char[], unsigned char[]);
 void runtime(unsigned char[], unsigned char[]);
-void bottle_count(void);
+void bottle_count(unsigned char []);
 void operation_end(void);
 void date_time(unsigned char[]);
+void servo_rotate(int);
+void read_colorsensor(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 
 const char keys[] = "123A456B789C*0#D";
 const char happynewyear[7] = {  0x45, //45 Seconds 
@@ -84,9 +87,9 @@ void main(void) {
     unsigned char time[7];
     unsigned char start_time[7];
     unsigned char end_time[7];
+    unsigned char bot_count[4];
     
     
-
     I2C_Master_Init(10000); //Initialize I2C Master with 100KHz clock
     
     // set_time();
@@ -103,14 +106,14 @@ void main(void) {
                 operation_end();
                 break;
             case OPERATION:                 //Check for '1' Press
-                init_operation(start_time, time);   
+                init_operation(start_time, time, bot_count);   
                 update_time(end_time);
                 break;
             case DATETIME:                  //Check for '4' Press
                 date_time(time);
                 break;
             case BOTTLECOUNT:               //Check for '3' Press
-                bottle_count();
+                bottle_count(bot_count);
                 break;
             case RUNTIME:                   //Check for '2' Press
                 runtime(start_time, end_time);
@@ -210,6 +213,25 @@ int dec_to_hex(int num) {                   //Convert decimal unsigned char to h
     return hexnum;
 }
 
+int hex_to_dec(int hexadecimal) {  // Doesn't work hehe xD
+    long long decimalNumber=0;
+    char hexDigits[16] = {0x0, 0x1,0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8,
+      0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF};
+    int i, j, power=0, digit;  
+     
+    /* Converting hexadecimal number to decimal number */
+    for(i = 0; i < 4; i++) {
+        /*search currect character in hexDigits array */
+        for(j=0; j<16; j++){
+            if(((hexadecimal >> 4*i) | 0xF) == hexDigits[j]){
+                decimalNumber += j*pow(16, power);
+            }
+        }
+        power++;
+    }  
+    hexadecimal = decimalNumber;
+}
+
 int time_difference(unsigned char time1[], unsigned char time2[]) {
     int hr1, hr2, min1, min2, s1, s2;
     int d1, d2, d3;
@@ -222,10 +244,23 @@ int time_difference(unsigned char time1[], unsigned char time2[]) {
     return 3600*d1 + 60*d2 + d3;                //Returns difference of 2 time arrays
 }
 
-void init_operation(unsigned char start_time[], unsigned char time[]){
+void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[]){
     update_time(start_time);                    //Update Starting Time of Operation
     __lcd_clear();
     initLCD();
+    
+    for (int i = 0; i<4; i++){
+        bot_count[i] = 0;
+    }
+    
+    unsigned char red[2];
+    unsigned char green[2];
+    unsigned char blue[2];
+    unsigned char clear[2];
+    
+    PORTEbits.RE1 = 1;
+    PORTEbits.RE0 = 1;
+    
     while(PORTBbits.RB1 == 0 && keys[(PORTB & 0xF0)>>4] != '*'){
         update_time(time);                      
         __lcd_home();
@@ -233,6 +268,49 @@ void init_operation(unsigned char start_time[], unsigned char time[]){
         __lcd_newline();
         printf("Elapsed: %is      ", time_difference(time, start_time));
         __delay_ms(500);
+        read_colorsensor(red, green, blue, clear);
+        int r = (red[0]<<8) | red[1];               //Concatenate the high and low bits
+        int g = (green[0]<<8) | green[1];
+        int b = (blue[0]<<8) | blue[1];
+        int c = (clear[0]<<8) | clear[1];
+        
+        __lcd_home();
+        printf("%i                ", r);
+        __lcd_newline();
+        printf("%i                ", c);
+        
+        if (r > 4000 && b < 2000){
+            PORTEbits.RE0 = 0;
+            bot_count[0] ++;
+            __delay_ms(500);
+            PORTEbits.RE0 = 1;
+        }
+        else if (r > 3000 && g < 3000 && b < 3000){
+            PORTEbits.RE0 = 0;
+            bot_count[1] ++;
+            __delay_ms(500);
+            PORTEbits.RE0 = 1;
+        }
+        
+        else if (b > 4000 && r < 2500){
+            PORTEbits.RE0 = 0;
+            bot_count[2] ++;
+            __delay_ms(500);
+            PORTEbits.RE0 = 1;
+        }
+        
+        else if (c > 2000 && c < 2500){
+            PORTEbits.RE0 = 0;
+            bot_count[3] ++;
+            __delay_ms(500);
+            PORTEbits.RE0 = 1;
+        }
+            
+        delay(1);
+      //  if (){
+            
+      //  }
+        
     }
 }
 
@@ -243,38 +321,38 @@ void runtime(unsigned char start_time[], unsigned char end_time[]){
     printf("Time: %is         ", time_difference(end_time, start_time));
 }
 
-void bottle_count(void){
+void bottle_count(unsigned char bot_count[]){
     while (bot_type != O){
         switch(bot_type){
             case TOTAL:
                 __lcd_home();
                 printf("Total Bottle    ");
                 __lcd_newline();
-                printf("Count: __       ");
+                printf("Count: %i       ", bot_count[0]);
                 break;
             case A:
                 __lcd_home();
                 printf("YOP With Cap    ");
                 __lcd_newline();
-                printf("Count: __       ");
+                printf("Count: %i       ", bot_count[0]);
                 break;
             case B:
                 __lcd_home();
                 printf("YOP With No Cap ");
                 __lcd_newline();
-                printf("Count: __       ");
+                printf("Count: %i       ", bot_count[1]);
                 break;
             case C:
                 __lcd_home();
                 printf("ESKA With Cap   ");
                 __lcd_newline();
-                printf("Count: __       ");
+                printf("Count: %i       ", bot_count[2]);
                 break;
             case D:
                 __lcd_home();
                 printf("ESKA With No Cap");
                 __lcd_newline();
-                printf("Count: __       ");
+                printf("Count: %i       "), bot_count[3];
                 break;
         }
         __delay_ms(100);
@@ -283,6 +361,7 @@ void bottle_count(void){
 }
 
 void operation_end(void){
+    PORTEbits.RE1 = 0;
     __lcd_home();
     printf("Operation Done! ");
     __lcd_newline();
@@ -315,4 +394,74 @@ void date_time(unsigned char time[]){
     printf("Time: %02x:%02x:%02x  ", time[2],time[1],time[0]);    //HH:MM:SS
 
     return;
+}
+
+void servo_rotate(int degree)
+{
+  unsigned int i;
+  unsigned int pwm = degree*(70/90) + 80;
+  for(i=0;i<50;i++)
+  {
+    PORTEbits.RE1 = 1;
+    for (unsigned int j = 0; j<pwm; j++)
+        __delay_us(10);
+    
+    PORTEbits.RE1 = 0;
+    for (unsigned int j = 0; j<(2000 - pwm); j++)
+        __delay_us(10);
+  }
+}
+
+void stepper(){
+    PORTCbits.RC0 = 1;
+    PORTCbits.RC1 = 1;
+    PORTCbits.RC2 = 0;
+    PORTCbits.RC5 = 0;
+    __delay_ms(500);
+    PORTCbits.RC0 = 0;
+    PORTCbits.RC1 = 1;
+    PORTCbits.RC2 = 1;
+    PORTCbits.RC5 = 0;
+    __delay_ms(500);
+    PORTCbits.RC0 = 0;
+    PORTCbits.RC1 = 0;
+    PORTCbits.RC2 = 1;
+    PORTCbits.RC5 = 1;
+    __delay_ms(500);
+    PORTCbits.RC0 = 1;
+    PORTCbits.RC1 = 0;
+    PORTCbits.RC2 = 0;
+    PORTCbits.RC5 = 1;
+    __delay_ms(500);
+}
+
+void read_colorsensor(unsigned char red[],unsigned char green[],unsigned char blue[],unsigned char clear[]){
+    //Write Start Condition
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010010);   //7bit address 0x29 + Write
+    I2C_Master_Write(0b10000000);   //Write to cmdreg + access enable reg
+    I2C_Master_Write(0b00000011);   //Start RGBC and POWER 
+    I2C_Master_Stop();
+    
+    //Colour data
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010010);   //7bit address 0x29 + Write
+    I2C_Master_Write(0b10110100);   //Write to cmdreg + access&increment clear low reg
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010011);   //7bit address 0x29 + Read
+    
+    clear[1] = I2C_Master_Read(1);  //Read clear with acknowledge (low bit)
+    clear[0] = I2C_Master_Read(1);  //High bit
+    
+    red[1] = I2C_Master_Read(1);    //Read red with acknowledge (low bit)
+    red[0] = I2C_Master_Read(1);    //High bit
+    
+    green[1] = I2C_Master_Read(1);  //Read green red with acknowledge (low bit)
+    green[0] = I2C_Master_Read(1);  //High bit
+    
+    blue[1] = I2C_Master_Read(1);   //Read blue red with acknowledge (low bit)
+    blue[0] = I2C_Master_Read(0);   //High bit
+    
+    I2C_Master_Stop();              //Stop condition
+    
 }

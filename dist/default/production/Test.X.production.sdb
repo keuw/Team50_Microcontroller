@@ -3,8 +3,8 @@
 [d edition pro ]
 [d chip 18F4620 ]
 [d frameptr 4065 ]
-"44 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
-[e E3123 state `uc
+"47 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+[e E3131 state `uc
 STANDBY 0
 OPERATION 1
 OPERATION_END 2
@@ -12,8 +12,8 @@ DATETIME 3
 BOTTLECOUNT 4
 RUNTIME 5
 ]
-"54
-[e E3131 bottle_count `uc
+"57
+[e E3139 bottle_count `uc
 TOTAL 0
 A 1
 B 2
@@ -101,31 +101,39 @@ O 5
 [v _putch putch `(v  1 e 1 0 ]
 "35
 [v _lcdNibble lcdNibble `(v  1 e 1 0 ]
-"56 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"59 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _main main `(v  1 e 1 0 ]
-"124
+"127
 [v _keypressed keypressed `II(v  1 e 1 0 ]
-"177
+"180
 [v _update_time update_time `(v  1 e 1 0 ]
-"193
+"196
 [v _delay delay `(v  1 e 1 0 ]
-"199
+"202
 [v _dec_to_hex dec_to_hex `(i  1 e 2 0 ]
-"213
+"235
 [v _time_difference time_difference `(i  1 e 2 0 ]
-"225
+"247
 [v _init_operation init_operation `(v  1 e 1 0 ]
-"239
+"316
 [v _runtime runtime `(v  1 e 1 0 ]
-"246
+"323
 [v _bottle_count bottle_count `(v  1 e 1 0 ]
-"285
+"362
 [v _operation_end operation_end `(v  1 e 1 0 ]
-"295
+"373
 [v _date_time date_time `(v  1 e 1 0 ]
+"437
+[v _read_colorsensor read_colorsensor `(v  1 e 1 0 ]
+"50 C:\Users\tonyk\MPLABXProjects\Test.X\Motors.c
+[v _servoRotate0 servoRotate0 `(v  1 e 1 0 ]
+"62
+[v _servoRotate90 servoRotate90 `(v  1 e 1 0 ]
+"74
+[v _servoRotate180 servoRotate180 `(v  1 e 1 0 ]
 "185 C:\Program Files (x86)\Microchip\xc8\v1.40\include\pic18f4620.h
 [v _PORTB PORTB `VEuc  1 e 1 @3969 ]
-[s S179 . 1 `uc 1 RB0 1 0 :1:0 
+[s S283 . 1 `uc 1 RB0 1 0 :1:0 
 `uc 1 RB1 1 0 :1:1 
 `uc 1 RB2 1 0 :1:2 
 `uc 1 RB3 1 0 :1:3 
@@ -135,7 +143,7 @@ O 5
 `uc 1 RB7 1 0 :1:7 
 ]
 "226
-[s S188 . 1 `uc 1 INT0 1 0 :1:0 
+[s S292 . 1 `uc 1 INT0 1 0 :1:0 
 `uc 1 INT1 1 0 :1:1 
 `uc 1 INT2 1 0 :1:2 
 `uc 1 CCP2 1 0 :1:3 
@@ -144,7 +152,7 @@ O 5
 `uc 1 KBI2 1 0 :1:6 
 `uc 1 KBI3 1 0 :1:7 
 ]
-[s S197 . 1 `uc 1 AN12 1 0 :1:0 
+[s S301 . 1 `uc 1 AN12 1 0 :1:0 
 `uc 1 AN10 1 0 :1:1 
 `uc 1 AN8 1 0 :1:2 
 `uc 1 AN9 1 0 :1:3 
@@ -153,11 +161,91 @@ O 5
 `uc 1 PGC 1 0 :1:6 
 `uc 1 PGD 1 0 :1:7 
 ]
-[s S206 . 1 `uc 1 . 1 0 :3:0 
+[s S310 . 1 `uc 1 . 1 0 :3:0 
 `uc 1 CCP2_PA2 1 0 :1:3 
 ]
-[u S209 . 1 `S179 1 . 1 0 `S188 1 . 1 0 `S197 1 . 1 0 `S206 1 . 1 0 ]
-[v _PORTBbits PORTBbits `VES209  1 e 1 @3969 ]
+[u S313 . 1 `S283 1 . 1 0 `S292 1 . 1 0 `S301 1 . 1 0 `S310 1 . 1 0 ]
+[v _PORTBbits PORTBbits `VES313  1 e 1 @3969 ]
+[s S349 . 1 `uc 1 RC0 1 0 :1:0 
+`uc 1 RC1 1 0 :1:1 
+`uc 1 RC2 1 0 :1:2 
+`uc 1 RC3 1 0 :1:3 
+`uc 1 RC4 1 0 :1:4 
+`uc 1 RC5 1 0 :1:5 
+`uc 1 RC6 1 0 :1:6 
+`uc 1 RC7 1 0 :1:7 
+]
+"400
+[s S358 . 1 `uc 1 T1OSO 1 0 :1:0 
+`uc 1 T1OSI 1 0 :1:1 
+`uc 1 CCP1 1 0 :1:2 
+`uc 1 SCK 1 0 :1:3 
+`uc 1 SDI 1 0 :1:4 
+`uc 1 SDO 1 0 :1:5 
+`uc 1 TX 1 0 :1:6 
+`uc 1 RX 1 0 :1:7 
+]
+[s S367 . 1 `uc 1 T13CKI 1 0 :1:0 
+`uc 1 CCP2 1 0 :1:1 
+`uc 1 . 1 0 :1:2 
+`uc 1 SCL 1 0 :1:3 
+`uc 1 SDA 1 0 :1:4 
+`uc 1 . 1 0 :1:5 
+`uc 1 CK 1 0 :1:6 
+`uc 1 DT 1 0 :1:7 
+]
+[s S376 . 1 `uc 1 T1CKI 1 0 :1:0 
+]
+[s S378 . 1 `uc 1 . 1 0 :1:0 
+`uc 1 PA2 1 0 :1:1 
+`uc 1 PA1 1 0 :1:2 
+]
+[u S382 . 1 `S349 1 . 1 0 `S358 1 . 1 0 `S367 1 . 1 0 `S376 1 . 1 0 `S378 1 . 1 0 ]
+[v _PORTCbits PORTCbits `VES382  1 e 1 @3970 ]
+[s S181 . 1 `uc 1 RE0 1 0 :1:0 
+`uc 1 RE1 1 0 :1:1 
+`uc 1 RE2 1 0 :1:2 
+`uc 1 RE3 1 0 :1:3 
+]
+"728
+[s S186 . 1 `uc 1 RD 1 0 :1:0 
+`uc 1 WR 1 0 :1:1 
+`uc 1 CS 1 0 :1:2 
+`uc 1 MCLR 1 0 :1:3 
+]
+[s S191 . 1 `uc 1 NOT_RD 1 0 :1:0 
+]
+[s S193 . 1 `uc 1 . 1 0 :1:0 
+`uc 1 NOT_WR 1 0 :1:1 
+]
+[s S196 . 1 `uc 1 . 1 0 :2:0 
+`uc 1 NOT_CS 1 0 :1:2 
+]
+[s S199 . 1 `uc 1 . 1 0 :3:0 
+`uc 1 NOT_MCLR 1 0 :1:3 
+]
+[s S202 . 1 `uc 1 nRD 1 0 :1:0 
+`uc 1 nWR 1 0 :1:1 
+`uc 1 nCS 1 0 :1:2 
+`uc 1 nMCLR 1 0 :1:3 
+]
+[s S207 . 1 `uc 1 AN5 1 0 :1:0 
+`uc 1 AN6 1 0 :1:1 
+`uc 1 AN7 1 0 :1:2 
+`uc 1 VPP 1 0 :1:3 
+]
+[s S212 . 1 `uc 1 PD2 1 0 :1:0 
+`uc 1 PC2 1 0 :1:1 
+`uc 1 CCP10 1 0 :1:2 
+`uc 1 CCP9E 1 0 :1:3 
+]
+[s S217 . 1 `uc 1 RDE 1 0 :1:0 
+`uc 1 WRE 1 0 :1:1 
+`uc 1 PB2 1 0 :1:2 
+`uc 1 PC3E 1 0 :1:3 
+]
+[u S222 . 1 `S181 1 . 1 0 `S186 1 . 1 0 `S191 1 . 1 0 `S193 1 . 1 0 `S196 1 . 1 0 `S199 1 . 1 0 `S202 1 . 1 0 `S207 1 . 1 0 `S212 1 . 1 0 `S217 1 . 1 0 ]
+[v _PORTEbits PORTEbits `VES222  1 e 1 @3972 ]
 "872
 [v _LATA LATA `VEuc  1 e 1 @3977 ]
 "983
@@ -166,7 +254,7 @@ O 5
 [v _LATC LATC `VEuc  1 e 1 @3979 ]
 "1205
 [v _LATD LATD `VEuc  1 e 1 @3980 ]
-[s S334 . 1 `uc 1 LATD0 1 0 :1:0 
+[s S558 . 1 `uc 1 LATD0 1 0 :1:0 
 `uc 1 LATD1 1 0 :1:1 
 `uc 1 LATD2 1 0 :1:2 
 `uc 1 LATD3 1 0 :1:3 
@@ -176,7 +264,7 @@ O 5
 `uc 1 LATD7 1 0 :1:7 
 ]
 "1232
-[s S343 . 1 `uc 1 LD0 1 0 :1:0 
+[s S567 . 1 `uc 1 LD0 1 0 :1:0 
 `uc 1 LD1 1 0 :1:1 
 `uc 1 LD2 1 0 :1:2 
 `uc 1 LD3 1 0 :1:3 
@@ -185,8 +273,8 @@ O 5
 `uc 1 LD6 1 0 :1:6 
 `uc 1 LD7 1 0 :1:7 
 ]
-[u S352 . 1 `S334 1 . 1 0 `S343 1 . 1 0 ]
-[v _LATDbits LATDbits `VES352  1 e 1 @3980 ]
+[u S576 . 1 `S558 1 . 1 0 `S567 1 . 1 0 ]
+[v _LATDbits LATDbits `VES576  1 e 1 @3980 ]
 "1316
 [v _LATE LATE `VEuc  1 e 1 @3981 ]
 "1367
@@ -266,94 +354,105 @@ O 5
 [v _hexpowers hexpowers `C[4]ui  1 s 8 hexpowers ]
 "3 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\errno.c
 [v _errno errno `i  1 e 2 0 ]
-"27 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
-[v _keys keys `C[17]uc  1 e 17 0 ]
-"28
+"31 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _happynewyear happynewyear `C[7]uc  1 e 7 0 ]
-"44
-[v _curr_state curr_state `E3123  1 e 1 0 ]
-"54
-[v _bot_type bot_type `E3131  1 e 1 0 ]
-"56
+"47
+[v _curr_state curr_state `E3131  1 e 1 0 ]
+"57
+[v _bot_type bot_type `E3139  1 e 1 0 ]
+"24 C:\Users\tonyk\MPLABXProjects\Test.X\Motors.c
+[v _keys keys `C[17]uc  1 e 17 0 ]
+"59 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _main main `(v  1 e 1 0 ]
 {
-"84
-[v main@time time `[7]uc  1 a 7 87 ]
-"86
-[v main@end_time end_time `[7]uc  1 a 7 80 ]
-"85
-[v main@start_time start_time `[7]uc  1 a 7 73 ]
-"122
+"87
+[v main@time time `[7]uc  1 a 7 111 ]
+"89
+[v main@end_time end_time `[7]uc  1 a 7 104 ]
+"88
+[v main@start_time start_time `[7]uc  1 a 7 97 ]
+"90
+[v main@bot_count bot_count `[4]uc  1 a 4 118 ]
+"125
 } 0
-"239
+"316
 [v _runtime runtime `(v  1 e 1 0 ]
 {
-[v runtime@start_time start_time `*.39uc  1 p 2 66 ]
-[v runtime@end_time end_time `*.39uc  1 p 2 68 ]
-"244
+[v runtime@start_time start_time `*.39uc  1 p 2 69 ]
+[v runtime@end_time end_time `*.39uc  1 p 2 71 ]
+"321
 } 0
-"285
+"362
 [v _operation_end operation_end `(v  1 e 1 0 ]
 {
-"293
+"371
 } 0
-"193
-[v _delay delay `(v  1 e 1 0 ]
-{
-"195
-[v delay@i_272 i `uc  1 a 1 21 ]
-"194
-[v delay@i i `i  1 a 2 19 ]
-"193
-[v delay@seconds seconds `i  1 p 2 16 ]
-"197
-} 0
-"225
+"247
 [v _init_operation init_operation `(v  1 e 1 0 ]
 {
-[v init_operation@start_time start_time `*.39uc  1 p 2 66 ]
-[v init_operation@time time `*.39uc  1 p 2 68 ]
-"237
+"271
+[v init_operation@r r `i  1 a 2 93 ]
+"274
+[v init_operation@c c `i  1 a 2 89 ]
+"273
+[v init_operation@b b `i  1 a 2 87 ]
+"272
+[v init_operation@g g `i  1 a 2 77 ]
+"252
+[v init_operation@i i `i  1 a 2 91 ]
+"259
+[v init_operation@clear clear `[2]uc  1 a 2 85 ]
+"258
+[v init_operation@blue blue `[2]uc  1 a 2 83 ]
+"257
+[v init_operation@green green `[2]uc  1 a 2 81 ]
+"256
+[v init_operation@red red `[2]uc  1 a 2 79 ]
+"247
+[v init_operation@start_time start_time `*.39uc  1 p 2 69 ]
+[v init_operation@time time `*.39uc  1 p 2 71 ]
+[v init_operation@bot_count bot_count `*.39uc  1 p 2 73 ]
+"314
 } 0
-"177
+"180
 [v _update_time update_time `(v  1 e 1 0 ]
 {
-"186
+"189
 [v update_time@i i `uc  1 a 1 21 ]
-"177
+"180
 [v update_time@time time `*.39uc  1 p 2 19 ]
-"191
+"194
 } 0
-"213
+"235
 [v _time_difference time_difference `(i  1 e 2 0 ]
 {
-"214
+"237
+[v time_difference@d3 d3 `i  1 a 2 45 ]
+[v time_difference@d2 d2 `i  1 a 2 43 ]
+[v time_difference@d1 d1 `i  1 a 2 41 ]
+"236
 [v time_difference@s2 s2 `i  1 a 2 39 ]
 [v time_difference@s1 s1 `i  1 a 2 37 ]
 [v time_difference@min2 min2 `i  1 a 2 35 ]
 [v time_difference@min1 min1 `i  1 a 2 33 ]
 [v time_difference@hr2 hr2 `i  1 a 2 31 ]
 [v time_difference@hr1 hr1 `i  1 a 2 29 ]
-"215
-[v time_difference@d3 d3 `uc  1 a 1 43 ]
-[v time_difference@d2 d2 `uc  1 a 1 42 ]
-[v time_difference@d1 d1 `uc  1 a 1 41 ]
-"213
+"235
 [v time_difference@time1 time1 `*.39uc  1 p 2 25 ]
 [v time_difference@time2 time2 `*.39uc  1 p 2 27 ]
-"223
+"245
 } 0
-"199
+"202
 [v _dec_to_hex dec_to_hex `(i  1 e 2 0 ]
 {
-"200
+"203
 [v dec_to_hex@quotient quotient `i  1 a 2 23 ]
 [v dec_to_hex@hexnum hexnum `i  1 a 2 21 ]
 [v dec_to_hex@i i `i  1 a 2 19 ]
 [v dec_to_hex@temp temp `i  1 a 2 17 ]
-"199
+"202
 [v dec_to_hex@num num `i  1 p 2 103 ]
-"211
+"214
 } 0
 "5 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\pow.c
 [v _pow pow `(d  1 e 3 0 ]
@@ -548,19 +647,39 @@ O 5
 [v ___awdiv@divisor divisor `i  1 p 2 18 ]
 "42
 } 0
+"437 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+[v _read_colorsensor read_colorsensor `(v  1 e 1 0 ]
+{
+[v read_colorsensor@red red `*.39uc  1 p 2 19 ]
+[v read_colorsensor@green green `*.39uc  1 p 2 21 ]
+[v read_colorsensor@blue blue `*.39uc  1 p 2 23 ]
+[v read_colorsensor@clear clear `*.39uc  1 p 2 25 ]
+"466
+} 0
 "14 C:\Users\tonyk\MPLABXProjects\Test.X\lcd.c
 [v _initLCD initLCD `(v  1 e 1 0 ]
 {
 "23
 } 0
-"295 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"196 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+[v _delay delay `(v  1 e 1 0 ]
+{
+"198
+[v delay@i_450 i `uc  1 a 1 21 ]
+"197
+[v delay@i i `i  1 a 2 19 ]
+"196
+[v delay@seconds seconds `i  1 p 2 16 ]
+"200
+} 0
+"373
 [v _date_time date_time `(v  1 e 1 0 ]
 {
-"305
-[v date_time@i i `uc  1 a 1 106 ]
-"295
-[v date_time@time time `*.39uc  1 p 2 66 ]
-"318
+"383
+[v date_time@i i `uc  1 a 1 107 ]
+"373
+[v date_time@time time `*.39uc  1 p 2 69 ]
+"396
 } 0
 "47 C:\Users\tonyk\MPLABXProjects\Test.X\I2C.c
 [v _I2C_Master_Write I2C_Master_Write `(v  1 e 1 0 ]
@@ -595,30 +714,31 @@ O 5
 {
 "27
 } 0
-"246 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"323 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _bottle_count bottle_count `(v  1 e 1 0 ]
 {
-"283
+[v bottle_count@bot_count bot_count `*.39uc  1 p 2 69 ]
+"360
 } 0
 "464 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\doprnt.c
 [v _printf printf `(i  1 e 2 0 ]
 {
 "1500
-[v printf@idx idx `uc  1 a 1 56 ]
+[v printf@idx idx `uc  1 a 1 59 ]
 "501
-[v printf@width width `i  1 a 2 63 ]
+[v printf@width width `i  1 a 2 66 ]
 "528
-[v printf@val val `ui  1 a 2 60 ]
+[v printf@val val `ui  1 a 2 63 ]
 "466
-[v printf@ap ap `[1]*.39v  1 a 2 57 ]
+[v printf@ap ap `[1]*.39v  1 a 2 60 ]
 "499
-[v printf@c c `c  1 a 1 65 ]
+[v printf@c c `c  1 a 1 68 ]
 "508
-[v printf@flag flag `uc  1 a 1 62 ]
+[v printf@flag flag `uc  1 a 1 65 ]
 "506
-[v printf@prec prec `c  1 a 1 59 ]
+[v printf@prec prec `c  1 a 1 62 ]
 "464
-[v printf@f f `*.25Cuc  1 p 2 44 ]
+[v printf@f f `*.25Cuc  1 p 2 47 ]
 "1541
 } 0
 "30 C:\Users\tonyk\MPLABXProjects\Test.X\lcd.c
@@ -662,9 +782,9 @@ O 5
 [v ___lwdiv __lwdiv `(ui  1 e 2 0 ]
 {
 "11
-[v ___lwdiv@quotient quotient `ui  1 a 2 21 ]
+[v ___lwdiv@quotient quotient `ui  1 a 2 20 ]
 "12
-[v ___lwdiv@counter counter `uc  1 a 1 20 ]
+[v ___lwdiv@counter counter `uc  1 a 1 22 ]
 "8
 [v ___lwdiv@dividend dividend `ui  1 p 2 16 ]
 [v ___lwdiv@divisor divisor `ui  1 p 2 18 ]
@@ -708,8 +828,8 @@ O 5
 [v ___lldiv@divisor divisor `ul  1 p 4 20 ]
 "31
 } 0
-"124 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"127 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _keypressed keypressed `II(v  1 e 1 0 ]
 {
-"165
+"168
 } 0

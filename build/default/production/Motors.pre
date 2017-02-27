@@ -1,5 +1,5 @@
 
-# 1 "main.c"
+# 1 "Motors.c"
 
 # 26 "C:\Program Files (x86)\Microchip\xc8\v1.40\include\htc.h"
 extern const char __xc8_OPTIM_SPEED;
@@ -3700,66 +3700,6 @@ extern int vsscanf(const char *, const char *, va_list) __attribute__((unsupport
 extern int sprintf(char *, const char *, ...);
 extern int printf(const char *, ...);
 
-# 30 "C:\Program Files (x86)\Microchip\xc8\v1.40\include\math.h"
-extern double fabs(double);
-extern double floor(double);
-extern double ceil(double);
-extern double modf(double, double *);
-extern double sqrt(double);
-extern double atof(const char *);
-extern double sin(double) ;
-extern double cos(double) ;
-extern double tan(double) ;
-extern double asin(double) ;
-extern double acos(double) ;
-extern double atan(double);
-extern double atan2(double, double) ;
-extern double log(double);
-extern double log10(double);
-extern double pow(double, double) ;
-extern double exp(double) ;
-extern double sinh(double) ;
-extern double cosh(double) ;
-extern double tanh(double);
-extern double eval_poly(double, const double *, int);
-extern double frexp(double, int *);
-extern double ldexp(double, int);
-extern double fmod(double, double);
-extern double trunc(double);
-extern double round(double);
-
-# 14 "C:\Program Files (x86)\Microchip\xc8\v1.40\include\string.h"
-extern void * memcpy(void *, const void *, size_t);
-extern void * memmove(void *, const void *, size_t);
-extern void * memset(void *, int, size_t);
-
-# 34
-extern char * strcat(char *, const char *);
-extern char * strcpy(char *, const char *);
-extern char * strncat(char *, const char *, size_t);
-extern char * strncpy(char *, const char *, size_t);
-extern char * strdup(const char *);
-extern char * strtok(char *, const char *);
-
-
-extern int memcmp(const void *, const void *, size_t);
-extern int strcmp(const char *, const char *);
-extern int stricmp(const char *, const char *);
-extern int strncmp(const char *, const char *, size_t);
-extern int strnicmp(const char *, const char *, size_t);
-extern void * memchr(const void *, int, size_t);
-extern size_t strcspn(const char *, const char *);
-extern char * strpbrk(const char *, const char *);
-extern size_t strspn(const char *, const char *);
-extern char * strstr(const char *, const char *);
-extern char * stristr(const char *, const char *);
-extern char * strerror(int);
-extern size_t strlen(const char *);
-extern char * strchr(const char *, int);
-extern char * strichr(const char *, int);
-extern char * strrchr(const char *, int);
-extern char * strrichr(const char *, int);
-
 
 # 9 "configBits.h"
 #pragma config OSC = HS
@@ -3816,462 +3756,106 @@ extern char * strrichr(const char *, int);
 
 #pragma config EBTRB = OFF
 
+# 14 "C:\Program Files (x86)\Microchip\xc8\v1.40\include\string.h"
+extern void * memcpy(void *, const void *, size_t);
+extern void * memmove(void *, const void *, size_t);
+extern void * memset(void *, int, size_t);
+
+# 34
+extern char * strcat(char *, const char *);
+extern char * strcpy(char *, const char *);
+extern char * strncat(char *, const char *, size_t);
+extern char * strncpy(char *, const char *, size_t);
+extern char * strdup(const char *);
+extern char * strtok(char *, const char *);
+
+
+extern int memcmp(const void *, const void *, size_t);
+extern int strcmp(const char *, const char *);
+extern int stricmp(const char *, const char *);
+extern int strncmp(const char *, const char *, size_t);
+extern int strnicmp(const char *, const char *, size_t);
+extern void * memchr(const void *, int, size_t);
+extern size_t strcspn(const char *, const char *);
+extern char * strpbrk(const char *, const char *);
+extern size_t strspn(const char *, const char *);
+extern char * strstr(const char *, const char *);
+extern char * stristr(const char *, const char *);
+extern char * strerror(int);
+extern size_t strlen(const char *);
+extern char * strchr(const char *, int);
+extern char * strichr(const char *, int);
+extern char * strrchr(const char *, int);
+extern char * strrichr(const char *, int);
+
 # 11 "lcd.h"
 void lcdInst(char data);
 void lcdNibble(char data);
 void initLCD(void);
 
-# 1 "I2C.h"
-void I2C_Master_Init(const unsigned long c);
-void I2C_Master_Write(unsigned d);
-unsigned char I2C_Master_Read(unsigned char a);
+# 20 "Motors.c"
+void servoRotate0();
+void servoRotate90();
+void servoRotate180();
 
-# 19 "main.c"
-void set_time(void);
-void update_time(unsigned char[]);
-void delay(int);
-void init_operation(unsigned char[], unsigned char[], unsigned char[]);
-void runtime(unsigned char[], unsigned char[]);
-void bottle_count(unsigned char []);
-void operation_end(void);
-void date_time(unsigned char[]);
-void servo_rotate(int);
-void read_colorsensor(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
+const char keys[] = "Z23A456B789C*0#D";
 
-const char keys[] = "123A456B789C*0#D";
-const char happynewyear[7] = { 0x45,
-0x59,
-0x23,
-0x07,
-0x31,
-0x12,
-0x16};
-
-enum state {
-STANDBY,
-OPERATION,
-OPERATION_END,
-DATETIME,
-BOTTLECOUNT,
-RUNTIME
-};
-enum state curr_state;
-
-enum bottle_count {
-TOTAL,
-A,
-B,
-C,
-D,
-O
-};
-enum bottle_count bot_type;
-
-void main(void) {
-
-
-
-TRISA = 0xFF;
-TRISB = 0xFF;
+void Motors(void) {
 TRISC = 0x00;
 TRISD = 0x00;
-TRISE = 0x00;
-
-LATA = 0x00;
+TRISB = 0xFF;
 LATB = 0x00;
 LATC = 0x00;
-LATD = 0x00;
-LATE = 0x00;
-
 ADCON0 = 0x00;
 ADCON1 = 0xFF;
-
-INT1IE = 1;
-(INTCONbits.GIE = 1);
-
-nRBPU = 0;
-
-
-
-lcdInst(0b00000001);;
-initLCD();
-unsigned char time[7];
-unsigned char start_time[7];
-unsigned char end_time[7];
-unsigned char bot_count[4];
-
-
-I2C_Master_Init(10000);
-
-
-lcdInst(0b00000001);;
-initLCD();
-lcdInst(0b10000000);;
-
-printf("Press 1 to begin operation");
-curr_state = STANDBY;
-bot_type = O;
-while (1){
-switch(curr_state){
-case OPERATION_END:
-operation_end();
-break;
-case OPERATION:
-init_operation(start_time, time, bot_count);
-update_time(end_time);
-break;
-case DATETIME:
-date_time(time);
-break;
-case BOTTLECOUNT:
-bottle_count(bot_count);
-break;
-case RUNTIME:
-runtime(start_time, end_time);
-break;
-}
-_delay((unsigned long)((100)*(10000000/4000.0)));
-}
-return;
-}
-
-void interrupt keypressed(void) {
-if(INT1IF){
-switch((PORTB & 0xF0) >> 4){
-case 0b1100:
-curr_state = OPERATION_END;
-bot_type = O;
-break;
-case 0b0000:
-curr_state = OPERATION;
-bot_type = O;
-break;
-case 0b0001:
-curr_state = RUNTIME;
-bot_type = O;
-break;
-case 0b0010:
-curr_state = BOTTLECOUNT;
-bot_type = TOTAL;
-break;
-case 0b0011:
-bot_type = A;
-break;
-case 0b0111:
-bot_type = B;
-break;
-case 0b1011:
-bot_type = C;
-break;
-case 0b1111:
-bot_type = D;
-break;
-case 0b0100:
-curr_state = DATETIME;
-bot_type = O;
-break;
-default:
-break;
-}
-}
-INT1IF = 0;
-return;
-}
-
-void set_time(void){
-I2C_Master_Start();
-I2C_Master_Write(0b11010000);
-I2C_Master_Write(0x00);
-for(char i=0; i<7; i++){
-I2C_Master_Write(happynewyear[i]);
-}
-I2C_Master_Stop();
-}
-
-void update_time(unsigned char time[]){
-I2C_Master_Start();
-I2C_Master_Write(0b11010000);
-I2C_Master_Write(0x00);
-I2C_Master_Stop();
-
-
-I2C_Master_Start();
-I2C_Master_Write(0b11010001);
-for(unsigned char i=0;i<0x06;i++){
-time[i] = I2C_Master_Read(1);
-}
-time[6] = I2C_Master_Read(0);
-I2C_Master_Stop();
-}
-
-void delay(int seconds) {
-for (int i = 0; i <= seconds; i ++) {
-for(char i=0;i<100;i++){_delay((unsigned long)((10)*(10000000/4000.0)));};
-}
-}
-
-int dec_to_hex(int num) {
-int i = 0, quotient = num, temp, hexnum = 0;
-
-while (quotient != 0) {
-temp = quotient % 16;
-
-hexnum += temp*pow(10,i);
-
-quotient = quotient / 16;
-i += 1;
-}
-return hexnum;
-}
-
-int hex_to_dec(int hexadecimal) {
-long long decimalNumber=0;
-char hexDigits[16] = {0x0, 0x1,0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8,
-0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF};
-int i, j, power=0, digit;
-
-
-for(i = 0; i < 4; i++) {
-
-for(j=0; j<16; j++){
-if(((hexadecimal >> 4*i) | 0xF) == hexDigits[j]){
-decimalNumber += j*pow(16, power);
-}
-}
-power++;
-}
-hexadecimal = decimalNumber;
-}
-
-int time_difference(unsigned char time1[], unsigned char time2[]) {
-int hr1, hr2, min1, min2, s1, s2;
-int d1, d2, d3;
-hr1 = time1[2]; hr2 = time2[2]; min1 = time1[1]; min2 = time2[1];
-s1 = time1[0]; s2 = time2[0];
-
-d1 = dec_to_hex(hr1) - dec_to_hex(hr2);
-d2 = dec_to_hex(min1) - dec_to_hex(min2);
-d3 = dec_to_hex(s1) - dec_to_hex(s2);
-return 3600*d1 + 60*d2 + d3;
-}
-
-void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[]){
-update_time(start_time);
-lcdInst(0b00000001);;
 initLCD();
 
-for (int i = 0; i<4; i++){
-bot_count[i] = 0;
-}
+while(1){
 
-unsigned char red[2];
-unsigned char green[2];
-unsigned char blue[2];
-unsigned char clear[2];
-
-PORTEbits.RE1 = 1;
-
-while(PORTBbits.RB1 == 0 && keys[(PORTB & 0xF0)>>4] != '*'){
-update_time(time);
-lcdInst(0b10000000);;
-printf("Press * To Stop ");
-lcdInst(0b11000000);;
-printf("Elapsed: %is      ", time_difference(time, start_time));
-_delay((unsigned long)((500)*(10000000/4000.0)));
-read_colorsensor(red, green, blue, clear);
-int r = (red[0]<<8) | red[1];
-int g = (green[0]<<8) | green[1];
-int b = (blue[0]<<8) | blue[1];
-int c = (clear[0]<<8) | clear[1];
-
-lcdInst(0b10000000);;
-printf("%i                ", r);
-lcdInst(0b11000000);;
-printf("%i                ", c);
-
-if (r > 4000 && b < 2000){
-PORTEbits.RE0 = 0;
-bot_count[0] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
-}
-else if (r > 3000 && g < 3000 & b < 3000){
-PORTEbits.RE0 = 0;
-bot_count[1] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
-}
-
-else if (b > 4000 && r < 2500){
-PORTEbits.RE0 = 0;
-bot_count[2] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
-}
-
-else if (c > 2000 && c < 2500){
-PORTEbits.RE0 = 0;
-bot_count[3] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
-}
-
-delay(1);
-
-
-
+servoRotate0();
+_delay((unsigned long)((2000)*(10000000/4000.0)));
+servoRotate90();
+_delay((unsigned long)((2000)*(10000000/4000.0)));
+servoRotate180();
+_delay((unsigned long)((2000)*(10000000/4000.0)));
 
 }
-}
-
-void runtime(unsigned char start_time[], unsigned char end_time[]){
-lcdInst(0b10000000);;
-printf("Total Operation ");
-lcdInst(0b11000000);;
-printf("Time: %is         ", time_difference(end_time, start_time));
-}
-
-void bottle_count(unsigned char bot_count[]){
-while (bot_type != O){
-switch(bot_type){
-case TOTAL:
-lcdInst(0b10000000);;
-printf("Total Bottle    ");
-lcdInst(0b11000000);;
-printf("Count: %i       ", bot_count[0]);
-break;
-case A:
-lcdInst(0b10000000);;
-printf("YOP With Cap    ");
-lcdInst(0b11000000);;
-printf("Count: %i       ", bot_count[0]);
-break;
-case B:
-lcdInst(0b10000000);;
-printf("YOP With No Cap ");
-lcdInst(0b11000000);;
-printf("Count: %i       ", bot_count[1]);
-break;
-case C:
-lcdInst(0b10000000);;
-printf("ESKA With Cap   ");
-lcdInst(0b11000000);;
-printf("Count: %i       ", bot_count[2]);
-break;
-case D:
-lcdInst(0b10000000);;
-printf("ESKA With No Cap");
-lcdInst(0b11000000);;
-printf("Count: %i       "), bot_count[3];
-break;
-}
-_delay((unsigned long)((100)*(10000000/4000.0)));
-}
-
-}
-
-void operation_end(void){
-PORTEbits.RE1 = 0;
-lcdInst(0b10000000);;
-printf("Operation Done! ");
-lcdInst(0b11000000);;
-printf("                ");
-curr_state = RUNTIME;
-delay(1);
-return;
-}
-
-void date_time(unsigned char time[]){
-
-I2C_Master_Start();
-I2C_Master_Write(0b11010000);
-I2C_Master_Write(0x00);
-I2C_Master_Stop();
-
-
-I2C_Master_Start();
-I2C_Master_Write(0b11010001);
-for(unsigned char i=0;i<0x06;i++){
-time[i] = I2C_Master_Read(1);
-}
-time[6] = I2C_Master_Read(0);
-I2C_Master_Stop();
-
-
-lcdInst(0b10000000);;
-printf("Date: %02x/%02x/%02x  ", time[5],time[4],time[6]);
-lcdInst(0b11000000);;
-printf("Time: %02x:%02x:%02x  ", time[2],time[1],time[0]);
 
 return;
 }
 
-void servo_rotate(int degree)
+void servoRotate0()
 {
 unsigned int i;
-unsigned int pwm = degree*(70/90) + 80;
 for(i=0;i<50;i++)
 {
 PORTEbits.RE1 = 1;
-for (unsigned int j = 0; j<pwm; j++)
-_delay((unsigned long)((10)*(10000000/4000000.0)));
-
+_delay((unsigned long)((800)*(10000000/4000000.0)));
 PORTEbits.RE1 = 0;
-for (unsigned int j = 0; j<(2000 - pwm); j++)
-_delay((unsigned long)((10)*(10000000/4000000.0)));
+_delay((unsigned long)((19200)*(10000000/4000000.0)));
 }
 }
 
-void stepper(){
-PORTCbits.RC0 = 1;
-PORTCbits.RC1 = 1;
-PORTCbits.RC2 = 0;
-PORTCbits.RC5 = 0;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTCbits.RC0 = 0;
-PORTCbits.RC1 = 1;
-PORTCbits.RC2 = 1;
-PORTCbits.RC5 = 0;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTCbits.RC0 = 0;
-PORTCbits.RC1 = 0;
-PORTCbits.RC2 = 1;
-PORTCbits.RC5 = 1;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTCbits.RC0 = 1;
-PORTCbits.RC1 = 0;
-PORTCbits.RC2 = 0;
-PORTCbits.RC5 = 1;
-_delay((unsigned long)((500)*(10000000/4000.0)));
+void servoRotate90()
+{
+unsigned int i;
+for(i=0;i<50;i++)
+{
+PORTEbits.RE1 = 1;
+_delay((unsigned long)((1500)*(10000000/4000000.0)));
+PORTEbits.RE1 = 0;
+_delay((unsigned long)((18500)*(10000000/4000000.0)));
+}
 }
 
-void read_colorsensor(unsigned char red[],unsigned char green[],unsigned char blue[],unsigned char clear[]){
-
-I2C_Master_Start();
-I2C_Master_Write(0b01010010);
-I2C_Master_Write(0b10000000);
-I2C_Master_Write(0b00000011);
-I2C_Master_Stop();
-
-
-I2C_Master_Start();
-I2C_Master_Write(0b01010010);
-I2C_Master_Write(0b10110100);
-I2C_Master_Start();
-I2C_Master_Write(0b01010011);
-
-clear[1] = I2C_Master_Read(1);
-clear[0] = I2C_Master_Read(1);
-
-red[1] = I2C_Master_Read(1);
-red[0] = I2C_Master_Read(1);
-
-green[1] = I2C_Master_Read(1);
-green[0] = I2C_Master_Read(1);
-
-blue[1] = I2C_Master_Read(1);
-blue[0] = I2C_Master_Read(0);
-
-I2C_Master_Stop();
-
+void servoRotate180()
+{
+unsigned int i;
+for(i=0;i<50;i++)
+{
+PORTEbits.RE1 = 1;
+_delay((unsigned long)((2200)*(10000000/4000000.0)));
+PORTEbits.RE1 = 0;
+_delay((unsigned long)((17800)*(10000000/4000000.0)));
+}
 }
