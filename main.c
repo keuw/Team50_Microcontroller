@@ -8,6 +8,7 @@
 
 #include <xc.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include "configBits.h"
@@ -15,17 +16,24 @@
 #include "lcd.h"
 #include "I2C.h"
 #include "macros.h"
+#include "eeprom_routines.h"
 
 void set_time(void);
 void update_time(unsigned char[]);
 void delay(int);
-void init_operation(unsigned char[], unsigned char[], unsigned char[]);
+void init_operation(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 void runtime(unsigned char[], unsigned char[]);
 void bottle_count(unsigned char []);
-void operation_end(void);
+void operation_end(unsigned char []);
 void date_time(unsigned char[]);
 void servo_rotate(int);
-void read_colorsensor(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
+void stepper(int);
+void stepper_rev(int);
+void stepper_state(unsigned char[]);
+void read_colorsensor1(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
+void read_colorsensor2(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
+void eeprom_readbye(uint16_t, uint8_t);
+uint8_t eeprom_readbyte(uint16_t);
 
 const char keys[] = "123A456B789C*0#D";
 const char happynewyear[7] = {  0x45, //45 Seconds 
@@ -62,7 +70,7 @@ void main(void) {
     
     TRISA = 0xFF; // Set Port A as all input
     TRISB = 0xFF; 
-    TRISC = 0x00;
+    TRISC = 0x18; //Input for sda and scl
     TRISD = 0x00; //All output mode for LCD
     TRISE = 0x00;    
 
@@ -88,6 +96,7 @@ void main(void) {
     unsigned char start_time[7];
     unsigned char end_time[7];
     unsigned char bot_count[4];
+    unsigned char step_state[2];
     
     
     I2C_Master_Init(10000); //Initialize I2C Master with 100KHz clock
@@ -103,10 +112,10 @@ void main(void) {
     while (1){
         switch(curr_state){
             case OPERATION_END:             //Check for '*' Press
-                operation_end();
+                operation_end(step_state);
                 break;
             case OPERATION:                 //Check for '1' Press
-                init_operation(start_time, time, bot_count);   
+                init_operation(start_time, time, bot_count, step_state);   
                 update_time(end_time);
                 break;
             case DATETIME:                  //Check for '4' Press
@@ -244,11 +253,15 @@ int time_difference(unsigned char time1[], unsigned char time2[]) {
     return 3600*d1 + 60*d2 + d3;                //Returns difference of 2 time arrays
 }
 
-void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[]){
+void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[], unsigned char step_state[]){
     update_time(start_time);                    //Update Starting Time of Operation
     __lcd_clear();
     initLCD();
+    step_state[0] = 1;
+    step_state[1] = 1;
     
+    unsigned char detection_time[7];
+    update_time(detection_time);
     for (int i = 0; i<4; i++){
         bot_count[i] = 0;
     }
@@ -261,57 +274,75 @@ void init_operation(unsigned char start_time[], unsigned char time[], unsigned c
     PORTEbits.RE1 = 1;
     PORTEbits.RE0 = 1;
     
-    while(PORTBbits.RB1 == 0 && keys[(PORTB & 0xF0)>>4] != '*'){
-        update_time(time);                      
+    while((curr_state != OPERATION_END) && (time_difference(time, detection_time) <20)){
+        update_time(time);    
+        /*
         __lcd_home();
         printf("Press * To Stop ");
         __lcd_newline();
         printf("Elapsed: %is      ", time_difference(time, start_time));
         __delay_ms(500);
-        read_colorsensor(red, green, blue, clear);
-        int r = (red[0]<<8) | red[1];               //Concatenate the high and low bits
-        int g = (green[0]<<8) | green[1];
-        int b = (blue[0]<<8) | blue[1];
-        int c = (clear[0]<<8) | clear[1];
+        */
+        read_colorsensor1(red, green, blue, clear);
+        int r1 = (red[0]<<8) | red[1];               //Concatenate the high and low bits
+        int g1 = (green[0]<<8) | green[1];
+        int b1 = (blue[0]<<8) | blue[1];
+        int c1 = (clear[0]<<8) | clear[1];
+        read_colorsensor2(red, green, blue, clear);
+        int r2 = (red[0]<<8) | red[1];               //Concatenate the high and low bits
+        int g2 = (green[0]<<8) | green[1];
+        int b2 = (blue[0]<<8) | blue[1];
+        int c2 = (clear[0]<<8) | clear[1];
+        
+        int luminosity1 = (-0.32466*r2) + (1.57837*g2) + (-0.73191*b2);
         
         __lcd_home();
-        printf("%i                ", r);
+        printf("%u       %u        ", r2, g2);
         __lcd_newline();
-        printf("%i                ", c);
+        printf("%u       %u        ", b2, time_difference(time, detection_time));
         
-        if (r > 4000 && b < 2000){
+        if (r2 > 4000 && b2 < 2000){
             PORTEbits.RE0 = 0;
             bot_count[0] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
+            step_state[1] = 1;
+            stepper_state(step_state);
+            update_time(detection_time);
         }
-        else if (r > 3000 && g < 3000 && b < 3000){
+        else if (r2 > 3000 && g2 > 3000 && b2 > 3000){
             PORTEbits.RE0 = 0;
             bot_count[1] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
+            step_state[1] = 2;
+            stepper_state(step_state);
+            update_time(detection_time);
         }
         
-        else if (b > 4000 && r < 2500){
+        else if (b2 > 4000 && r2 < 2500){
             PORTEbits.RE0 = 0;
             bot_count[2] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
+            step_state[1] = 3;
+            stepper_state(step_state);
+            update_time(detection_time);
         }
         
-        else if (c > 2000 && c < 2500){
+        else if (c2 > 2000 && c2 < 2500){
             PORTEbits.RE0 = 0;
             bot_count[3] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
+            step_state[1] = 4;
+            stepper_state(step_state);
+            update_time(detection_time);
         }
             
-        delay(1);
-      //  if (){
-            
-      //  }
-        
+        __delay_ms(500);
     }
+    curr_state = OPERATION_END;
 }
 
 void runtime(unsigned char start_time[], unsigned char end_time[]){
@@ -328,7 +359,7 @@ void bottle_count(unsigned char bot_count[]){
                 __lcd_home();
                 printf("Total Bottle    ");
                 __lcd_newline();
-                printf("Count: %i       ", bot_count[0]);
+                printf("Count: %i       ", (bot_count[0] + bot_count[1] + bot_count[2] + bot_count[3]));
                 break;
             case A:
                 __lcd_home();
@@ -360,13 +391,15 @@ void bottle_count(unsigned char bot_count[]){
 
 }
 
-void operation_end(void){
+void operation_end(unsigned char step_state[]){
     PORTEbits.RE1 = 0;
     __lcd_home();
     printf("Operation Done! ");
     __lcd_newline();
     printf("                ");
     curr_state = RUNTIME;
+    step_state[1] = 1;
+    stepper_state(step_state);
     delay(1);
     return;
 }
@@ -412,30 +445,97 @@ void servo_rotate(int degree)
   }
 }
 
-void stepper(){
-    PORTCbits.RC0 = 1;
-    PORTCbits.RC1 = 1;
-    PORTCbits.RC2 = 0;
-    PORTCbits.RC5 = 0;
-    __delay_ms(500);
-    PORTCbits.RC0 = 0;
-    PORTCbits.RC1 = 1;
-    PORTCbits.RC2 = 1;
-    PORTCbits.RC5 = 0;
-    __delay_ms(500);
-    PORTCbits.RC0 = 0;
-    PORTCbits.RC1 = 0;
-    PORTCbits.RC2 = 1;
-    PORTCbits.RC5 = 1;
-    __delay_ms(500);
-    PORTCbits.RC0 = 1;
-    PORTCbits.RC1 = 0;
-    PORTCbits.RC2 = 0;
-    PORTCbits.RC5 = 1;
-    __delay_ms(500);
+void stepper(int r){
+    
+    for (int i = 0; i < r; i++){ //128 is 90 degrees
+        PORTCbits.RC0 = 1;
+        PORTCbits.RC1 = 1;
+        PORTCbits.RC2 = 0;
+        PORTCbits.RC5 = 0;
+        __delay_ms(5);
+        PORTCbits.RC0 = 0;
+        PORTCbits.RC1 = 1;
+        PORTCbits.RC2 = 1;
+        PORTCbits.RC5 = 0;
+        __delay_ms(5);
+        PORTCbits.RC0 = 0;
+        PORTCbits.RC1 = 0;
+        PORTCbits.RC2 = 1;
+        PORTCbits.RC5 = 1;
+        __delay_ms(5);
+        PORTCbits.RC0 = 1;
+        PORTCbits.RC1 = 0;
+        PORTCbits.RC2 = 0;
+        PORTCbits.RC5 = 1;
+        __delay_ms(5);
+    }
 }
 
-void read_colorsensor(unsigned char red[],unsigned char green[],unsigned char blue[],unsigned char clear[]){
+void stepper_rev(int r){
+    
+    for (int i = 0; i < r; i++){ //128 is 90 degrees
+        PORTCbits.RC0 = 1;
+        PORTCbits.RC1 = 0;
+        PORTCbits.RC2 = 0;
+        PORTCbits.RC5 = 1;
+        __delay_ms(5);
+        PORTCbits.RC0 = 0;
+        PORTCbits.RC1 = 0;
+        PORTCbits.RC2 = 1;
+        PORTCbits.RC5 = 1;
+        __delay_ms(5);
+        PORTCbits.RC0 = 0;
+        PORTCbits.RC1 = 1;
+        PORTCbits.RC2 = 1;
+        PORTCbits.RC5 = 0;
+        __delay_ms(5);
+        PORTCbits.RC0 = 1;
+        PORTCbits.RC1 = 1;
+        PORTCbits.RC2 = 0;
+        PORTCbits.RC5 = 0;
+        __delay_ms(5);
+    }
+}
+
+void stepper_state(unsigned char step_state[]){
+    int i = 0;
+    int curr_state = step_state[0];
+    switch(curr_state){
+        case 1:             //Check for '1' 
+            if (step_state[1] = 2) stepper(128);
+            else if (step_state[1] = 3) stepper(256);
+            else if (step_state[1] = 4) stepper_rev(128);
+            step_state[0] = 1;
+            break;
+        case 2:             //Check for '2' 
+            if (step_state[1] = 3) stepper(128);
+            else if (step_state[1] = 4) stepper(256);
+            else if (step_state[1] = 1) stepper_rev(128);
+            step_state[0] = 2;
+            break;
+        case 3:             //Check for '3' 
+            if (step_state[1] = 4) stepper(128);
+            else if (step_state[1] = 1) stepper(256);
+            else if (step_state[1] = 2) stepper_rev(128);
+            step_state[0] = 3;
+            break;
+        case 4:             //Check for '4' 
+            if (step_state[1] = 1) stepper(128);
+            else if (step_state[1] = 2) stepper(256);
+            else if (step_state[1] = 3) stepper_rev(128);
+            step_state[0] = 4;
+            break;
+    }
+}
+
+void read_colorsensor1(unsigned char red[],unsigned char green[],unsigned char blue[],unsigned char clear[]){
+    //Write to Multiplexer
+    I2C_Master_Start();
+    I2C_Master_Write(0b11100000);   //7bit address 0x70 + Write
+    I2C_Master_Write(0b10000000);   //Write to cmdreg
+    I2C_Master_Write(0b10000000);   //Enable control register 7 (Sensor 1)
+    I2C_Master_Stop();
+    
     //Write Start Condition
     I2C_Master_Start();
     I2C_Master_Write(0b01010010);   //7bit address 0x29 + Write
@@ -464,4 +564,84 @@ void read_colorsensor(unsigned char red[],unsigned char green[],unsigned char bl
     
     I2C_Master_Stop();              //Stop condition
     
+}
+
+void read_colorsensor2(unsigned char red[],unsigned char green[],unsigned char blue[],unsigned char clear[]){
+    //Write to Multiplexer
+    I2C_Master_Start();
+    I2C_Master_Write(0b11100000);   //7bit address 0x70 + Write
+    I2C_Master_Write(0b10000000);   //Write to cmdreg
+    I2C_Master_Write(0b00000100);   //Enable control register 2 (Sensor 2)
+    I2C_Master_Stop();
+    
+    //Write Start Condition
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010010);   //7bit address 0x29 + Write
+    I2C_Master_Write(0b10000000);   //Write to cmdreg + access enable reg
+    I2C_Master_Write(0b00000011);   //Start RGBC and POWER 
+    I2C_Master_Stop();
+    
+    //Colour data
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010010);   //7bit address 0x29 + Write
+    I2C_Master_Write(0b10110100);   //Write to cmdreg + access&increment clear low reg
+    I2C_Master_Start();
+    I2C_Master_Write(0b01010011);   //7bit address 0x29 + Read
+    
+    clear[1] = I2C_Master_Read(1);  //Read clear with acknowledge (low bit)
+    clear[0] = I2C_Master_Read(1);  //High bit
+    
+    red[1] = I2C_Master_Read(1);    //Read red with acknowledge (low bit)
+    red[0] = I2C_Master_Read(1);    //High bit
+    
+    green[1] = I2C_Master_Read(1);  //Read green red with acknowledge (low bit)
+    green[0] = I2C_Master_Read(1);  //High bit
+    
+    blue[1] = I2C_Master_Read(1);   //Read blue red with acknowledge (low bit)
+    blue[0] = I2C_Master_Read(0);   //High bit
+    
+    I2C_Master_Stop();              //Stop condition
+}
+
+uint8_t eeprom_readbyte(uint16_t address) {
+
+    // Set address registers
+    EEADRH = (uint8_t)(address >> 8);
+    EEADR = (uint8_t)address;
+
+    EECON1bits.EEPGD = 0;       // Select EEPROM Data Memory
+    EECON1bits.CFGS = 0;        // Access flash/EEPROM NOT config. registers
+    EECON1bits.RD = 1;          // Start a read cycle
+
+    // A read should only take one cycle, and then the hardware will clear
+    // the RD bit
+    while(EECON1bits.RD == 1);
+
+    return EEDATA;              // Return data
+}
+
+void eeprom_writebyte(uint16_t address, uint8_t data) {    
+    // Set address registers
+    EEADRH = (uint8_t)(address >> 8);
+    EEADR = (uint8_t)address;
+
+    EEDATA = data;          // Write data we want to write to SFR
+    EECON1bits.EEPGD = 0;   // Select EEPROM data memory
+    EECON1bits.CFGS = 0;    // Access flash/EEPROM NOT config. registers
+    EECON1bits.WREN = 1;    // Enable writing of EEPROM (this is disabled again after the write completes)
+
+    // The next three lines of code perform the required operations to
+    // initiate a EEPROM write
+    EECON2 = 0x55;          // Part of required sequence for write to internal EEPROM
+    EECON2 = 0xAA;          // Part of required sequence for write to internal EEPROM
+    EECON1bits.WR = 1;      // Part of required sequence for write to internal EEPROM
+
+    // Loop until write operation is complete
+    while(PIR2bits.EEIF == 0)
+    {
+        continue;   // Do nothing, are just waiting
+    }
+
+    PIR2bits.EEIF = 0;      //Clearing EEIF bit (this MUST be cleared in software after each write)
+    EECON1bits.WREN = 0;    // Disable write (for safety, it is re-enabled next time a EEPROM write is performed)
 }
