@@ -34,6 +34,9 @@ void read_colorsensor1(unsigned char[], unsigned char[], unsigned char[], unsign
 void read_colorsensor2(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 void eeprom_readbye(uint16_t, uint8_t);
 uint8_t eeprom_readbyte(uint16_t);
+void servoRotate0();
+void servoRotate90();
+void servoRotate180();
 
 const char keys[] = "123A456B789C*0#D";
 const char happynewyear[7] = {  0x45, //45 Seconds 
@@ -255,6 +258,7 @@ int time_difference(unsigned char time1[], unsigned char time2[]) {
 
 void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[], unsigned char step_state[]){
     update_time(start_time);                    //Update Starting Time of Operation
+    update_time(time);
     __lcd_clear();
     initLCD();
     step_state[0] = 1;
@@ -297,50 +301,50 @@ void init_operation(unsigned char start_time[], unsigned char time[], unsigned c
         int luminosity1 = (-0.32466*r2) + (1.57837*g2) + (-0.73191*b2);
         
         __lcd_home();
-        printf("%u       %u        ", r2, g2);
+        printf("%u|%u|%u        ", r1, g1, b1);
         __lcd_newline();
-        printf("%u       %u        ", b2, time_difference(time, detection_time));
+        printf("%u|%u|%u        ", r2, g2, b2);
         
-        if (r2 > 4000 && b2 < 2000){
-            PORTEbits.RE0 = 0;
-            bot_count[0] ++;
-            __delay_ms(500);
-            PORTEbits.RE0 = 1;
+        if ((r1/b1 > 1.6 && (r2+g2+b2) > 6500) || (r2/b2 > 1.6 && (r1+g1+b1) > 7000)){
             step_state[1] = 1;
             stepper_state(step_state);
+            PORTEbits.RE0 = 0;
+            bot_count[0] ++;
+            __delay_ms(250);
+            PORTEbits.RE0 = 1;
             update_time(detection_time);
         }
-        else if (r2 > 3000 && g2 > 3000 && b2 > 3000){
-            PORTEbits.RE0 = 0;
-            bot_count[1] ++;
-            __delay_ms(500);
-            PORTEbits.RE0 = 1;
+        else if ((r1+g1+b1) > 7000 || (r2+g2+b2) > 6500){
             step_state[1] = 2;
             stepper_state(step_state);
+            PORTEbits.RE0 = 0;
+            bot_count[1] ++;
+            __delay_ms(250);
+            PORTEbits.RE0 = 1;
             update_time(detection_time);
         }
         
-        else if (b2 > 4000 && r2 < 2500){
+        else if (b1/r1 > 1.25 || b2/r2 > 1.25){
+            step_state[1] = 3;
+            stepper_state(step_state);
             PORTEbits.RE0 = 0;
             bot_count[2] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
-            step_state[1] = 3;
-            stepper_state(step_state);
             update_time(detection_time);
         }
         
-        else if (c2 > 2000 && c2 < 2500){
+        else if ((r1+g1+b1) > 3600 || (r2+g2+b2) > 3600){
+            step_state[1] = 4;
+            stepper_state(step_state);
             PORTEbits.RE0 = 0;
             bot_count[3] ++;
             __delay_ms(500);
             PORTEbits.RE0 = 1;
-            step_state[1] = 4;
-            stepper_state(step_state);
             update_time(detection_time);
         }
             
-        __delay_ms(500);
+        __delay_ms(1000);
     }
     curr_state = OPERATION_END;
 }
@@ -400,7 +404,7 @@ void operation_end(unsigned char step_state[]){
     curr_state = RUNTIME;
     step_state[1] = 1;
     stepper_state(step_state);
-    delay(1);
+    __delay_ms(500);
     return;
 }
 
@@ -435,11 +439,11 @@ void servo_rotate(int degree)
   unsigned int pwm = degree*(70/90) + 80;
   for(i=0;i<50;i++)
   {
-    PORTEbits.RE1 = 1;
+    PORTCbits.RC0 = 1;
     for (unsigned int j = 0; j<pwm; j++)
         __delay_us(10);
     
-    PORTEbits.RE1 = 0;
+    PORTCbits.RC0 = 0;
     for (unsigned int j = 0; j<(2000 - pwm); j++)
         __delay_us(10);
   }
@@ -474,11 +478,6 @@ void stepper(int r){
 void stepper_rev(int r){
     
     for (int i = 0; i < r; i++){ //128 is 90 degrees
-        PORTCbits.RC0 = 1;
-        PORTCbits.RC1 = 0;
-        PORTCbits.RC2 = 0;
-        PORTCbits.RC5 = 1;
-        __delay_ms(5);
         PORTCbits.RC0 = 0;
         PORTCbits.RC1 = 0;
         PORTCbits.RC2 = 1;
@@ -491,38 +490,42 @@ void stepper_rev(int r){
         __delay_ms(5);
         PORTCbits.RC0 = 1;
         PORTCbits.RC1 = 1;
-        PORTCbits.RC2 = 0;
+        PORTCbits.RC2 = 1;
         PORTCbits.RC5 = 0;
+        __delay_ms(5);
+        PORTCbits.RC0 = 1;
+        PORTCbits.RC1 = 0;
+        PORTCbits.RC2 = 0;
+        PORTCbits.RC5 = 1;
         __delay_ms(5);
     }
 }
 
 void stepper_state(unsigned char step_state[]){
-    int i = 0;
-    int curr_state = step_state[0];
-    switch(curr_state){
+    int next_state = step_state[1];
+    switch(next_state){
         case 1:             //Check for '1' 
-            if (step_state[1] = 2) stepper(128);
-            else if (step_state[1] = 3) stepper(256);
-            else if (step_state[1] = 4) stepper_rev(128);
+            if (step_state[0] == 2) stepper_rev(64);
+            else if (step_state[0] == 3) stepper_rev(128);
+            else if (step_state[0] == 4) stepper_rev(192);
             step_state[0] = 1;
             break;
         case 2:             //Check for '2' 
-            if (step_state[1] = 3) stepper(128);
-            else if (step_state[1] = 4) stepper(256);
-            else if (step_state[1] = 1) stepper_rev(128);
+            if (step_state[0] == 3) stepper_rev(64);
+            else if (step_state[0] == 4) stepper_rev(128);
+            else if (step_state[0] == 1) stepper(64);
             step_state[0] = 2;
             break;
         case 3:             //Check for '3' 
-            if (step_state[1] = 4) stepper(128);
-            else if (step_state[1] = 1) stepper(256);
-            else if (step_state[1] = 2) stepper_rev(128);
+            if (step_state[0] == 4) stepper_rev(64);
+            else if (step_state[0] == 1) stepper(128);
+            else if (step_state[0] == 2) stepper_rev(64);
             step_state[0] = 3;
             break;
         case 4:             //Check for '4' 
-            if (step_state[1] = 1) stepper(128);
-            else if (step_state[1] = 2) stepper(256);
-            else if (step_state[1] = 3) stepper_rev(128);
+            if (step_state[0] == 1) stepper(192);
+            else if (step_state[0] == 2) stepper(128);
+            else if (step_state[0] == 3) stepper_rev(64);
             step_state[0] = 4;
             break;
     }
@@ -644,4 +647,40 @@ void eeprom_writebyte(uint16_t address, uint8_t data) {
 
     PIR2bits.EEIF = 0;      //Clearing EEIF bit (this MUST be cleared in software after each write)
     EECON1bits.WREN = 0;    // Disable write (for safety, it is re-enabled next time a EEPROM write is performed)
+}
+
+void servoRotate0() //0 Degree
+{
+  unsigned int i;
+  for(i=0;i<50;i++)
+  {
+    PORTCbits.RC0 = 1;
+    __delay_us(800);
+    PORTCbits.RC0 = 0;
+    __delay_us(19200);
+  }
+}
+
+void servoRotate90() //90 Degree
+{
+  unsigned int i;
+  for(i=0;i<50;i++)
+  {
+    PORTCbits.RC0 = 1;
+    __delay_us(1500);
+    PORTCbits.RC0 = 0;
+    __delay_us(18500);
+  }
+}
+
+void servoRotate180() //180 Degree
+{
+  unsigned int i;
+  for(i=0;i<50;i++)
+  {
+    PORTCbits.RC0 = 1;
+    __delay_us(2200);
+    PORTCbits.RC0 = 0;
+    __delay_us(17800);
+  }
 }

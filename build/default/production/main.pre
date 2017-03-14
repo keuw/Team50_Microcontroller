@@ -3933,6 +3933,9 @@ void read_colorsensor1(unsigned char[], unsigned char[], unsigned char[], unsign
 void read_colorsensor2(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 void eeprom_readbye(uint16_t, uint8_t);
 uint8_t eeprom_readbyte(uint16_t);
+void servoRotate0();
+void servoRotate90();
+void servoRotate180();
 
 const char keys[] = "123A456B789C*0#D";
 const char happynewyear[7] = { 0x45,
@@ -4154,6 +4157,7 @@ return 3600*d1 + 60*d2 + d3;
 
 void init_operation(unsigned char start_time[], unsigned char time[], unsigned char bot_count[], unsigned char step_state[]){
 update_time(start_time);
+update_time(time);
 lcdInst(0b00000001);;
 initLCD();
 step_state[0] = 1;
@@ -4176,7 +4180,7 @@ PORTEbits.RE0 = 1;
 while((curr_state != OPERATION_END) && (time_difference(time, detection_time) <20)){
 update_time(time);
 
-# 286
+# 290
 read_colorsensor1(red, green, blue, clear);
 int r1 = (red[0]<<8) | red[1];
 int g1 = (green[0]<<8) | green[1];
@@ -4191,50 +4195,50 @@ int c2 = (clear[0]<<8) | clear[1];
 int luminosity1 = (-0.32466*r2) + (1.57837*g2) + (-0.73191*b2);
 
 lcdInst(0b10000000);;
-printf("%u       %u        ", r2, g2);
+printf("%u|%u|%u        ", r1, g1, b1);
 lcdInst(0b11000000);;
-printf("%u       %u        ", b2, r2/b2);
+printf("%u|%u|%u        ", r2, g2, b2);
 
-if (r2 > 4000 && b2 < 2000){
-PORTEbits.RE0 = 0;
-bot_count[0] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
+if ((r1/b1 > 1.6 && (r2+g2+b2) > 6500) || (r2/b2 > 1.6 && (r1+g1+b1) > 7000)){
 step_state[1] = 1;
 stepper_state(step_state);
+PORTEbits.RE0 = 0;
+bot_count[0] ++;
+_delay((unsigned long)((250)*(10000000/4000.0)));
+PORTEbits.RE0 = 1;
 update_time(detection_time);
 }
-else if (r2 > 3000 && g2 > 3000 && b2 > 3000){
-PORTEbits.RE0 = 0;
-bot_count[1] ++;
-_delay((unsigned long)((500)*(10000000/4000.0)));
-PORTEbits.RE0 = 1;
+else if ((r1+g1+b1) > 7000 || (r2+g2+b2) > 6500){
 step_state[1] = 2;
 stepper_state(step_state);
+PORTEbits.RE0 = 0;
+bot_count[1] ++;
+_delay((unsigned long)((250)*(10000000/4000.0)));
+PORTEbits.RE0 = 1;
 update_time(detection_time);
 }
 
-else if (b2 > 4000 && r2 < 2500){
+else if (b1/r1 > 1.25 || b2/r2 > 1.25){
+step_state[1] = 3;
+stepper_state(step_state);
 PORTEbits.RE0 = 0;
 bot_count[2] ++;
 _delay((unsigned long)((500)*(10000000/4000.0)));
 PORTEbits.RE0 = 1;
-step_state[1] = 3;
-stepper_state(step_state);
 update_time(detection_time);
 }
 
-else if (c2 > 2000 && c2 < 2500){
+else if ((r1+g1+b1) > 3600 || (r2+g2+b2) > 3600){
+step_state[1] = 4;
+stepper_state(step_state);
 PORTEbits.RE0 = 0;
 bot_count[3] ++;
 _delay((unsigned long)((500)*(10000000/4000.0)));
 PORTEbits.RE0 = 1;
-step_state[1] = 4;
-stepper_state(step_state);
 update_time(detection_time);
 }
 
-_delay((unsigned long)((500)*(10000000/4000.0)));
+_delay((unsigned long)((1000)*(10000000/4000.0)));
 }
 curr_state = OPERATION_END;
 }
@@ -4294,7 +4298,7 @@ printf("                ");
 curr_state = RUNTIME;
 step_state[1] = 1;
 stepper_state(step_state);
-delay(1);
+_delay((unsigned long)((500)*(10000000/4000.0)));
 return;
 }
 
@@ -4329,11 +4333,11 @@ unsigned int i;
 unsigned int pwm = degree*(70/90) + 80;
 for(i=0;i<50;i++)
 {
-PORTEbits.RE1 = 1;
+PORTCbits.RC0 = 1;
 for (unsigned int j = 0; j<pwm; j++)
 _delay((unsigned long)((10)*(10000000/4000000.0)));
 
-PORTEbits.RE1 = 0;
+PORTCbits.RC0 = 0;
 for (unsigned int j = 0; j<(2000 - pwm); j++)
 _delay((unsigned long)((10)*(10000000/4000000.0)));
 }
@@ -4368,11 +4372,6 @@ _delay((unsigned long)((5)*(10000000/4000.0)));
 void stepper_rev(int r){
 
 for (int i = 0; i < r; i++){
-PORTCbits.RC0 = 1;
-PORTCbits.RC1 = 0;
-PORTCbits.RC2 = 0;
-PORTCbits.RC5 = 1;
-_delay((unsigned long)((5)*(10000000/4000.0)));
 PORTCbits.RC0 = 0;
 PORTCbits.RC1 = 0;
 PORTCbits.RC2 = 1;
@@ -4385,38 +4384,42 @@ PORTCbits.RC5 = 0;
 _delay((unsigned long)((5)*(10000000/4000.0)));
 PORTCbits.RC0 = 1;
 PORTCbits.RC1 = 1;
-PORTCbits.RC2 = 0;
+PORTCbits.RC2 = 1;
 PORTCbits.RC5 = 0;
+_delay((unsigned long)((5)*(10000000/4000.0)));
+PORTCbits.RC0 = 1;
+PORTCbits.RC1 = 0;
+PORTCbits.RC2 = 0;
+PORTCbits.RC5 = 1;
 _delay((unsigned long)((5)*(10000000/4000.0)));
 }
 }
 
 void stepper_state(unsigned char step_state[]){
-int i = 0;
-int curr_state = step_state[0];
-switch(curr_state){
+int next_state = step_state[1];
+switch(next_state){
 case 1:
-if (step_state[1] = 2) stepper(128);
-else if (step_state[1] = 3) stepper(256);
-else if (step_state[1] = 4) stepper_rev(128);
+if (step_state[0] == 2) stepper_rev(64);
+else if (step_state[0] == 3) stepper_rev(128);
+else if (step_state[0] == 4) stepper_rev(192);
 step_state[0] = 1;
 break;
 case 2:
-if (step_state[1] = 3) stepper(128);
-else if (step_state[1] = 4) stepper(256);
-else if (step_state[1] = 1) stepper_rev(128);
+if (step_state[0] == 3) stepper_rev(64);
+else if (step_state[0] == 4) stepper_rev(128);
+else if (step_state[0] == 1) stepper(64);
 step_state[0] = 2;
 break;
 case 3:
-if (step_state[1] = 4) stepper(128);
-else if (step_state[1] = 1) stepper(256);
-else if (step_state[1] = 2) stepper_rev(128);
+if (step_state[0] == 4) stepper_rev(64);
+else if (step_state[0] == 1) stepper(128);
+else if (step_state[0] == 2) stepper_rev(64);
 step_state[0] = 3;
 break;
 case 4:
-if (step_state[1] = 1) stepper(128);
-else if (step_state[1] = 2) stepper(256);
-else if (step_state[1] = 3) stepper_rev(128);
+if (step_state[0] == 1) stepper(192);
+else if (step_state[0] == 2) stepper(128);
+else if (step_state[0] == 3) stepper_rev(64);
 step_state[0] = 4;
 break;
 }
@@ -4538,4 +4541,40 @@ continue;
 
 PIR2bits.EEIF = 0;
 EECON1bits.WREN = 0;
+}
+
+void servoRotate0()
+{
+unsigned int i;
+for(i=0;i<50;i++)
+{
+PORTCbits.RC0 = 1;
+_delay((unsigned long)((800)*(10000000/4000000.0)));
+PORTCbits.RC0 = 0;
+_delay((unsigned long)((19200)*(10000000/4000000.0)));
+}
+}
+
+void servoRotate90()
+{
+unsigned int i;
+for(i=0;i<50;i++)
+{
+PORTCbits.RC0 = 1;
+_delay((unsigned long)((1500)*(10000000/4000000.0)));
+PORTCbits.RC0 = 0;
+_delay((unsigned long)((18500)*(10000000/4000000.0)));
+}
+}
+
+void servoRotate180()
+{
+unsigned int i;
+for(i=0;i<50;i++)
+{
+PORTCbits.RC0 = 1;
+_delay((unsigned long)((2200)*(10000000/4000000.0)));
+PORTCbits.RC0 = 0;
+_delay((unsigned long)((17800)*(10000000/4000000.0)));
+}
 }
