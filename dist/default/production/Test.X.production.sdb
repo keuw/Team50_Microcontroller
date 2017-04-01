@@ -113,23 +113,23 @@ O 5
 [v _time_difference time_difference `(i  1 e 2 0 ]
 "259
 [v _init_operation init_operation `(v  1 e 1 0 ]
-"352
+"367
 [v _runtime runtime `(v  1 e 1 0 ]
-"359
+"374
 [v _bottle_count bottle_count `(v  1 e 1 0 ]
-"398
+"413
 [v _operation_end operation_end `(v  1 e 1 0 ]
-"411
+"427
 [v _date_time date_time `(v  1 e 1 0 ]
-"452
+"468
 [v _stepper stepper `(v  1 e 1 0 ]
-"478
+"494
 [v _stepper_rev stepper_rev `(v  1 e 1 0 ]
-"504
+"520
 [v _stepper_state stepper_state `(v  1 e 1 0 ]
-"534
+"550
 [v _read_colorsensor1 read_colorsensor1 `(v  1 e 1 0 ]
-"572
+"588
 [v _read_colorsensor2 read_colorsensor2 `(v  1 e 1 0 ]
 "185 C:\Program Files (x86)\Microchip\xc8\v1.40\include\pic18f4620.h
 [v _PORTB PORTB `VEuc  1 e 1 @3969 ]
@@ -221,7 +221,7 @@ O 5
 [v _LATC LATC `VEuc  1 e 1 @3979 ]
 "1205
 [v _LATD LATD `VEuc  1 e 1 @3980 ]
-[s S607 . 1 `uc 1 LATD0 1 0 :1:0 
+[s S615 . 1 `uc 1 LATD0 1 0 :1:0 
 `uc 1 LATD1 1 0 :1:1 
 `uc 1 LATD2 1 0 :1:2 
 `uc 1 LATD3 1 0 :1:3 
@@ -231,7 +231,7 @@ O 5
 `uc 1 LATD7 1 0 :1:7 
 ]
 "1232
-[s S616 . 1 `uc 1 LD0 1 0 :1:0 
+[s S624 . 1 `uc 1 LD0 1 0 :1:0 
 `uc 1 LD1 1 0 :1:1 
 `uc 1 LD2 1 0 :1:2 
 `uc 1 LD3 1 0 :1:3 
@@ -240,8 +240,8 @@ O 5
 `uc 1 LD6 1 0 :1:6 
 `uc 1 LD7 1 0 :1:7 
 ]
-[u S625 . 1 `S607 1 . 1 0 `S616 1 . 1 0 ]
-[v _LATDbits LATDbits `VES625  1 e 1 @3980 ]
+[u S633 . 1 `S615 1 . 1 0 `S624 1 . 1 0 ]
+[v _LATDbits LATDbits `VES633  1 e 1 @3980 ]
 "1316
 [v _LATE LATE `VEuc  1 e 1 @3981 ]
 "1367
@@ -369,69 +369,85 @@ O 5
 [v _main main `(v  1 e 1 0 ]
 {
 "98
-[v main@time time `[7]uc  1 a 7 14 ]
+[v main@time time `[7]uc  1 a 7 95 ]
 "100
-[v main@end_time end_time `[7]uc  1 a 7 7 ]
+[v main@end_time end_time `[7]uc  1 a 7 88 ]
 "99
-[v main@start_time start_time `[7]uc  1 a 7 0 ]
+[v main@start_time start_time `[7]uc  1 a 7 81 ]
 "101
-[v main@bot_count bot_count `[4]uc  1 a 4 21 ]
+[v main@bot_count bot_count `[4]uc  1 a 4 102 ]
 "102
-[v main@step_state step_state `[2]uc  1 a 2 25 ]
+[v main@step_state step_state `[2]uc  1 a 2 106 ]
 "137
 } 0
-"352
+"367
 [v _runtime runtime `(v  1 e 1 0 ]
 {
 [v runtime@start_time start_time `*.39uc  1 p 2 69 ]
 [v runtime@end_time end_time `*.39uc  1 p 2 71 ]
-"357
+"372
 } 0
-"398
+"413
 [v _operation_end operation_end `(v  1 e 1 0 ]
 {
 [v operation_end@step_state step_state `*.39uc  1 p 2 69 ]
-"409
+"425
 } 0
 "259
 [v _init_operation init_operation `(v  1 e 1 0 ]
 {
+"317
+[v init_operation@b2_521 b2 `i  1 a 2 44 ]
+"315
+[v init_operation@r2_519 r2 `i  1 a 2 42 ]
+"312
+[v init_operation@b1_517 b1 `i  1 a 2 40 ]
+"310
+[v init_operation@r1_515 r1 `i  1 a 2 38 ]
+"316
+[v init_operation@g2_520 g2 `i  1 a 2 26 ]
+"311
+[v init_operation@g1_516 g1 `i  1 a 2 24 ]
+"318
+[v init_operation@c2_522 c2 `i  1 a 2 20 ]
+"313
+[v init_operation@c1_518 c1 `i  1 a 2 18 ]
 "298
-[v init_operation@b2 b2 `i  1 a 2 115 ]
+[v init_operation@b2 b2 `i  1 a 2 36 ]
 "296
-[v init_operation@r2 r2 `i  1 a 2 113 ]
+[v init_operation@r2 r2 `i  1 a 2 34 ]
 "293
-[v init_operation@b1 b1 `i  1 a 2 111 ]
+[v init_operation@b1 b1 `i  1 a 2 30 ]
 "291
-[v init_operation@r1 r1 `i  1 a 2 109 ]
+[v init_operation@r1 r1 `i  1 a 2 28 ]
 "297
-[v init_operation@g2 g2 `i  1 a 2 107 ]
-"292
-[v init_operation@g1 g1 `i  1 a 2 105 ]
-"301
-[v init_operation@luminosity1 luminosity1 `i  1 a 2 83 ]
+[v init_operation@g2 g2 `i  1 a 2 22 ]
 "299
-[v init_operation@c2 c2 `i  1 a 2 81 ]
+[v init_operation@c2 c2 `i  1 a 2 16 ]
 "294
-[v init_operation@c1 c1 `i  1 a 2 79 ]
+[v init_operation@c1 c1 `i  1 a 2 14 ]
+"292
+[v init_operation@g1 g1 `i  1 a 2 12 ]
+"301
+[v init_operation@luminosity1 luminosity1 `i  1 a 2 0 ]
 "269
-[v init_operation@i i `i  1 a 2 95 ]
+[v init_operation@i i `i  1 a 2 32 ]
 "267
-[v init_operation@detection_time detection_time `[7]uc  1 a 7 85 ]
+[v init_operation@detection_time detection_time `[7]uc  1 a 7 2 ]
 "276
-[v init_operation@clear clear `[2]uc  1 a 2 103 ]
+[v init_operation@clear clear `[2]uc  1 a 2 52 ]
 "275
-[v init_operation@blue blue `[2]uc  1 a 2 101 ]
+[v init_operation@blue blue `[2]uc  1 a 2 50 ]
 "274
-[v init_operation@green green `[2]uc  1 a 2 99 ]
+[v init_operation@green green `[2]uc  1 a 2 48 ]
 "273
-[v init_operation@red red `[2]uc  1 a 2 97 ]
+[v init_operation@red red `[2]uc  1 a 2 46 ]
 "259
 [v init_operation@start_time start_time `*.39uc  1 p 2 69 ]
 [v init_operation@time time `*.39uc  1 p 2 71 ]
 [v init_operation@bot_count bot_count `*.39uc  1 p 2 73 ]
 [v init_operation@step_state step_state `*.39uc  1 p 2 75 ]
-"350
+"365
 } 0
 "192
 [v _update_time update_time `(v  1 e 1 0 ]
@@ -549,8 +565,8 @@ O 5
 "4 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\ftge.c
 [v ___ftge __ftge `(b  1 e 0 0 ]
 {
-[v ___ftge@ff1 ff1 `f  1 p 3 28 ]
-[v ___ftge@ff2 ff2 `f  1 p 3 31 ]
+[v ___ftge@ff1 ff1 `f  1 p 3 43 ]
+[v ___ftge@ff2 ff2 `f  1 p 3 46 ]
 "13
 } 0
 "42 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\altoft.c
@@ -617,14 +633,14 @@ O 5
 [v ___ftdiv __ftdiv `(f  1 e 3 0 ]
 {
 "60
-[v ___ftdiv@f3 f3 `f  1 a 3 34 ]
+[v ___ftdiv@f3 f3 `f  1 a 3 38 ]
 "59
-[v ___ftdiv@sign sign `uc  1 a 1 38 ]
-[v ___ftdiv@exp exp `uc  1 a 1 37 ]
-[v ___ftdiv@cntr cntr `uc  1 a 1 33 ]
+[v ___ftdiv@sign sign `uc  1 a 1 42 ]
+[v ___ftdiv@exp exp `uc  1 a 1 41 ]
+[v ___ftdiv@cntr cntr `uc  1 a 1 37 ]
 "54
-[v ___ftdiv@f1 f1 `f  1 p 3 24 ]
-[v ___ftdiv@f2 f2 `f  1 p 3 27 ]
+[v ___ftdiv@f1 f1 `f  1 p 3 28 ]
+[v ___ftdiv@f2 f2 `f  1 p 3 31 ]
 "86
 } 0
 "32 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\awtoft.c
@@ -666,64 +682,64 @@ O 5
 [v ___awdiv@divisor divisor `i  1 p 2 18 ]
 "42
 } 0
-"504 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"520 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _stepper_state stepper_state `(v  1 e 1 0 ]
 {
-"505
+"521
 [v stepper_state@next_state next_state `i  1 a 2 25 ]
-"504
+"520
 [v stepper_state@step_state step_state `*.39uc  1 p 2 21 ]
-"532
+"548
 } 0
-"478
+"494
 [v _stepper_rev stepper_rev `(v  1 e 1 0 ]
 {
-"480
+"496
 [v stepper_rev@i i `i  1 a 2 19 ]
-"478
+"494
 [v stepper_rev@r r `i  1 p 2 16 ]
-"502
+"518
 } 0
-"452
+"468
 [v _stepper stepper `(v  1 e 1 0 ]
 {
-"454
+"470
 [v stepper@i i `i  1 a 2 19 ]
-"452
+"468
 [v stepper@r r `i  1 p 2 16 ]
-"476
+"492
 } 0
-"572
+"588
 [v _read_colorsensor2 read_colorsensor2 `(v  1 e 1 0 ]
 {
 [v read_colorsensor2@red red `*.39uc  1 p 2 19 ]
 [v read_colorsensor2@green green `*.39uc  1 p 2 21 ]
 [v read_colorsensor2@blue blue `*.39uc  1 p 2 23 ]
 [v read_colorsensor2@clear clear `*.39uc  1 p 2 25 ]
-"607
+"623
 } 0
-"534
+"550
 [v _read_colorsensor1 read_colorsensor1 `(v  1 e 1 0 ]
 {
 [v read_colorsensor1@red red `*.39uc  1 p 2 19 ]
 [v read_colorsensor1@green green `*.39uc  1 p 2 21 ]
 [v read_colorsensor1@blue blue `*.39uc  1 p 2 23 ]
 [v read_colorsensor1@clear clear `*.39uc  1 p 2 25 ]
-"570
+"586
 } 0
 "14 C:\Users\tonyk\MPLABXProjects\Test.X\lcd.c
 [v _initLCD initLCD `(v  1 e 1 0 ]
 {
 "23
 } 0
-"411 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"427 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _date_time date_time `(v  1 e 1 0 ]
 {
-"421
+"437
 [v date_time@i i `uc  1 a 1 107 ]
-"411
+"427
 [v date_time@time time `*.39uc  1 p 2 69 ]
-"434
+"450
 } 0
 "47 C:\Users\tonyk\MPLABXProjects\Test.X\I2C.c
 [v _I2C_Master_Write I2C_Master_Write `(v  1 e 1 0 ]
@@ -758,11 +774,11 @@ O 5
 {
 "27
 } 0
-"359 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
+"374 C:\Users\tonyk\MPLABXProjects\Test.X\main.c
 [v _bottle_count bottle_count `(v  1 e 1 0 ]
 {
 [v bottle_count@bot_count bot_count `*.39uc  1 p 2 69 ]
-"396
+"411
 } 0
 "464 C:\Program Files (x86)\Microchip\xc8\v1.40\sources\common\doprnt.c
 [v _printf printf `(i  1 e 2 0 ]

@@ -301,49 +301,64 @@ void init_operation(unsigned char start_time[], unsigned char time[], unsigned c
         int luminosity1 = (-0.32466*r2) + (1.57837*g2) + (-0.73191*b2);
         
         __lcd_home();
-        printf("%u|%u|%u        ", r1, g1, b1);
+        printf("%u|%u|%u|%u        ", r1, b1, c1);
         __lcd_newline();
-        printf("%u|%u|%u        ", r2, g2, b2);
+        printf("%u|%u|%u|%u        ", r2, b2, c2);
         
-        if ((r1/b1 > 1.6 && (r2+g2+b2) > 6500) || (r2/b2 > 1.6 && (r1+g1+b1) > 7000)){
-            step_state[1] = 1;
-            stepper_state(step_state);
-            PORTEbits.RE0 = 0;
-            bot_count[0] ++;
-            __delay_ms(250);
-            PORTEbits.RE0 = 1;
-            update_time(detection_time);
-        }
-        else if ((r1+g1+b1) > 7000 || (r2+g2+b2) > 6500){
-            step_state[1] = 2;
-            stepper_state(step_state);
-            PORTEbits.RE0 = 0;
-            bot_count[1] ++;
-            __delay_ms(250);
-            PORTEbits.RE0 = 1;
-            update_time(detection_time);
-        }
-        
-        else if (b1/r1 > 1.25 || b2/r2 > 1.25){
-            step_state[1] = 3;
-            stepper_state(step_state);
-            PORTEbits.RE0 = 0;
-            bot_count[2] ++;
-            __delay_ms(500);
-            PORTEbits.RE0 = 1;
-            update_time(detection_time);
-        }
-        
-        else if ((r1+g1+b1) > 3600 || (r2+g2+b2) > 3600){
-            step_state[1] = 4;
-            stepper_state(step_state);
-            PORTEbits.RE0 = 0;
-            bot_count[3] ++;
-            __delay_ms(500);
-            PORTEbits.RE0 = 1;
-            update_time(detection_time);
-        }
+        if ((unsigned int)(r1+g1+b1) > 3600 || (unsigned int)(r2+g2+b2) > 3600 || b1 > r1 || b2 > r2){
+            __delay_ms(2000);
+            read_colorsensor1(red, green, blue, clear);
+            int r1 = (red[0]<<8) | red[1];               //Concatenate the high and low bits
+            int g1 = (green[0]<<8) | green[1];
+            int b1 = (blue[0]<<8) | blue[1];
+            int c1 = (clear[0]<<8) | clear[1];
+            read_colorsensor2(red, green, blue, clear);
+            int r2 = (red[0]<<8) | red[1];               //Concatenate the high and low bits
+            int g2 = (green[0]<<8) | green[1];
+            int b2 = (blue[0]<<8) | blue[1];
+            int c2 = (clear[0]<<8) | clear[1];
+            PORTEbits.RE1 = 0;
             
+            if (((float)r1/(float)b1 > 1.7  && (unsigned int)(r2+g2+b2) > 5600) || ((float)r2/(float)b2 > 1.7  && ((unsigned int)r1+g1+b1) > 6200)){
+                step_state[1] = 1;
+                stepper_state(step_state);
+                PORTEbits.RE0 = 0;
+                bot_count[0] ++;
+                __delay_ms(150);
+                PORTEbits.RE0 = 1;
+                update_time(detection_time);
+            }
+             else if ((float)b1/(float)r1 > 1.01 || (float)b2/(float)r2 > 1.01){
+                step_state[1] = 3;
+                stepper_state(step_state);
+                PORTEbits.RE0 = 0;
+                bot_count[2] ++;
+                __delay_ms(150);
+                PORTEbits.RE0 = 1;
+                update_time(detection_time);
+            }
+             
+             else if ((unsigned int)(r1+g1+b1) > 6800 || (unsigned int)(r2+g2+b2) > 6500){
+                step_state[1] = 2;
+                stepper_state(step_state);
+                PORTEbits.RE0 = 0;
+                bot_count[1] ++;
+                __delay_ms(150);
+                PORTEbits.RE0 = 1;
+                update_time(detection_time);
+            }
+            
+            else if ((c1 > 2550 || c2 > 3400)){
+                step_state[1] = 4;
+                stepper_state(step_state);
+                PORTEbits.RE0 = 0;
+                bot_count[3] ++;
+                __delay_ms(150);
+                PORTEbits.RE0 = 1;
+                update_time(detection_time);
+            }
+            PORTEbits.RE1 = 1;
+        }
         __delay_ms(1000);
     }
     curr_state = OPERATION_END;
@@ -363,31 +378,31 @@ void bottle_count(unsigned char bot_count[]){
                 __lcd_home();
                 printf("Total Bottle    ");
                 __lcd_newline();
-                printf("Count: %i       ", (bot_count[0] + bot_count[1] + bot_count[2] + bot_count[3]));
+                printf("Count: %u       ", (bot_count[0] + bot_count[1] + bot_count[2] + bot_count[3]));
                 break;
             case A:
                 __lcd_home();
                 printf("YOP With Cap    ");
                 __lcd_newline();
-                printf("Count: %i       ", bot_count[0]);
+                printf("Count: %u       ", bot_count[0]);
                 break;
             case B:
                 __lcd_home();
                 printf("YOP With No Cap ");
                 __lcd_newline();
-                printf("Count: %i       ", bot_count[1]);
+                printf("Count: %u       ", bot_count[1]);
                 break;
             case C:
                 __lcd_home();
                 printf("ESKA With Cap   ");
                 __lcd_newline();
-                printf("Count: %i       ", bot_count[2]);
+                printf("Count: %u       ", bot_count[2]);
                 break;
             case D:
                 __lcd_home();
                 printf("ESKA With No Cap");
                 __lcd_newline();
-                printf("Count: %i       "), bot_count[3];
+                printf("Count: %u       ", bot_count[3]);
                 break;
         }
         __delay_ms(100);
@@ -397,6 +412,7 @@ void bottle_count(unsigned char bot_count[]){
 
 void operation_end(unsigned char step_state[]){
     PORTEbits.RE1 = 0;
+    PORTEbits.RE0 = 1;
     __lcd_home();
     printf("Operation Done! ");
     __lcd_newline();
@@ -505,27 +521,27 @@ void stepper_state(unsigned char step_state[]){
     int next_state = step_state[1];
     switch(next_state){
         case 1:             //Check for '1' 
-            if (step_state[0] == 2) stepper_rev(64);
-            else if (step_state[0] == 3) stepper_rev(128);
-            else if (step_state[0] == 4) stepper_rev(192);
+            if (step_state[0] == 2) stepper_rev(85);
+            else if (step_state[0] == 3) stepper_rev(170);
+            else if (step_state[0] == 4) stepper_rev(255);
             step_state[0] = 1;
             break;
         case 2:             //Check for '2' 
-            if (step_state[0] == 3) stepper_rev(64);
-            else if (step_state[0] == 4) stepper_rev(128);
-            else if (step_state[0] == 1) stepper(64);
+            if (step_state[0] == 3) stepper_rev(85);
+            else if (step_state[0] == 4) stepper_rev(170);
+            else if (step_state[0] == 1) stepper(85);
             step_state[0] = 2;
             break;
         case 3:             //Check for '3' 
-            if (step_state[0] == 4) stepper_rev(64);
-            else if (step_state[0] == 1) stepper(128);
-            else if (step_state[0] == 2) stepper_rev(64);
+            if (step_state[0] == 4) stepper_rev(85);
+            else if (step_state[0] == 1) stepper(170);
+            else if (step_state[0] == 2) stepper(85);
             step_state[0] = 3;
             break;
         case 4:             //Check for '4' 
-            if (step_state[0] == 1) stepper(192);
-            else if (step_state[0] == 2) stepper(128);
-            else if (step_state[0] == 3) stepper_rev(64);
+            if (step_state[0] == 1) stepper(255);
+            else if (step_state[0] == 2) stepper(170);
+            else if (step_state[0] == 3) stepper(85);
             step_state[0] = 4;
             break;
     }
