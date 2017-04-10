@@ -3931,20 +3931,20 @@ void stepper_rev(int);
 void stepper_state(unsigned char[]);
 void read_colorsensor1(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 void read_colorsensor2(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
-void eeprom_readbye(uint16_t, uint8_t);
+void eeprom_writebyte(uint16_t, uint8_t);
 uint8_t eeprom_readbyte(uint16_t);
 void servoRotate0();
 void servoRotate90();
 void servoRotate180();
 
 const char keys[] = "123A456B789C*0#D";
-const char happynewyear[7] = { 0x45,
-0x59,
-0x23,
-0x07,
-0x31,
-0x12,
-0x16};
+const char happynewyear[7] = { 0x30,
+0x35,
+0x17,
+0x02,
+0x10,
+0x04,
+0x17};
 
 enum state {
 STANDBY,
@@ -3952,7 +3952,10 @@ OPERATION,
 OPERATION_END,
 DATETIME,
 BOTTLECOUNT,
-RUNTIME
+RUNTIME,
+SAVE,
+DELETE,
+MEMORY
 };
 enum state curr_state;
 
@@ -3999,6 +4002,7 @@ unsigned char start_time[7];
 unsigned char end_time[7];
 unsigned char bot_count[4];
 unsigned char step_state[2];
+unsigned char mem[1];
 
 
 I2C_Master_Init(10000);
@@ -4008,17 +4012,29 @@ lcdInst(0b00000001);;
 initLCD();
 lcdInst(0b10000000);;
 
+if (eeprom_readbyte(20) == 0xFF){
+eeprom_writebyte(20, 20);
+eeprom_writebyte(21, 0);
+eeprom_writebyte(22, 0);
+eeprom_writebyte(23, 0);
+eeprom_writebyte(24, 0);
+}
+
 printf("Press 1 to begin operation");
 curr_state = STANDBY;
 bot_type = O;
+int temp = 0;
+char pressed;
 while (1){
 switch(curr_state){
 case OPERATION_END:
 operation_end(step_state);
 break;
 case OPERATION:
+mem[0] = 21;
 init_operation(start_time, time, bot_count, step_state);
 update_time(end_time);
+temp = 0;
 break;
 case DATETIME:
 date_time(time);
@@ -4029,13 +4045,49 @@ break;
 case RUNTIME:
 runtime(start_time, end_time);
 break;
+case SAVE:
+if (temp == 0){
+eeprom_writebyte((eeprom_readbyte(20) + 1), bot_count[0]);
+eeprom_writebyte((eeprom_readbyte(20) + 2), bot_count[1]);
+eeprom_writebyte((eeprom_readbyte(20) + 3), bot_count[2]);
+eeprom_writebyte((eeprom_readbyte(20) + 4), bot_count[3]);
+eeprom_writebyte(20, (eeprom_readbyte(20) + 4));
+lcdInst(0b10000000);;
+printf("Saved           ");
+lcdInst(0b11000000);;
+printf("                ");
+temp = 1;
+}
+break;
+case DELETE:
+lcdInst(0b10000000);;
+printf("Deleted         ");
+lcdInst(0b11000000);;
+printf("                ");
+break;
+case MEMORY:
+lcdInst(0b10000000);;
+printf("Y  |Ync|E  |Enc");
+lcdInst(0b11000000);;
+printf("%u|%u|%u|%u|%u|%u", eeprom_readbyte(mem[0]), eeprom_readbyte(mem[0]+1), eeprom_readbyte(mem[0]+2), eeprom_readbyte(mem[0]+3), eeprom_readbyte(20), mem[0]);
+if (PORTBbits.RB1 == 1){
+while (PORTBbits.RB1 == 1){
+pressed = keys[(PORTB & 0xF0)>>4];
+}
+if ((mem[0] > 21) && pressed == '8'){
+mem[0] -= 4;
+}
+else if ((mem[0] < eeprom_readbyte(20) - 3) && pressed == '9'){
+mem[0] += 4;
+}
+}
 }
 _delay((unsigned long)((100)*(10000000/4000.0)));
 }
 return;
 }
 
-void interrupt keypressed(void) {
+void interrupt keypressed(unsigned char mem[]) {
 if(INT1IF){
 switch((PORTB & 0xF0) >> 4){
 case 0b1100:
@@ -4068,6 +4120,25 @@ bot_type = D;
 break;
 case 0b0100:
 curr_state = DATETIME;
+bot_type = O;
+break;
+case 0b0101:
+curr_state = SAVE;
+bot_type = O;
+break;
+case 0b0110:
+if (eeprom_readbyte(20) > 0){
+eeprom_writebyte((eeprom_readbyte(20) + 1), 0);
+eeprom_writebyte((eeprom_readbyte(20) + 2), 0);
+eeprom_writebyte((eeprom_readbyte(20) + 19), 0);
+eeprom_writebyte((eeprom_readbyte(20) + 20), 0);
+eeprom_writebyte(20, (eeprom_readbyte(20) - 4));
+}
+curr_state = DELETE;
+bot_type = O;
+break;
+case 0b1000:
+curr_state = MEMORY;
 bot_type = O;
 break;
 default:
@@ -4180,7 +4251,7 @@ PORTEbits.RE0 = 1;
 while((curr_state != OPERATION_END) && (time_difference(time, detection_time) <20)){
 update_time(time);
 
-# 290
+# 361
 read_colorsensor1(red, green, blue, clear);
 int r1 = (red[0]<<8) | red[1];
 int g1 = (green[0]<<8) | green[1];

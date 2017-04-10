@@ -32,20 +32,20 @@ void stepper_rev(int);
 void stepper_state(unsigned char[]);
 void read_colorsensor1(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
 void read_colorsensor2(unsigned char[], unsigned char[], unsigned char[], unsigned char[]);
-void eeprom_readbye(uint16_t, uint8_t);
+void eeprom_writebyte(uint16_t, uint8_t);
 uint8_t eeprom_readbyte(uint16_t);
 void servoRotate0();
 void servoRotate90();
 void servoRotate180();
 
 const char keys[] = "123A456B789C*0#D";
-const char happynewyear[7] = {  0x45, //45 Seconds 
-                            0x59, //59 Minutes
-                            0x23, //24 hour mode, set to 23:00
-                            0x07, //Saturday 
-                            0x31, //31st
-                            0x12, //December
-                            0x16};//2016
+const char happynewyear[7] = {  0x30, //45 Seconds 
+                            0x35, //59 Minutes
+                            0x17, //24 hour mode, set to 23:00
+                            0x02, //Monday 
+                            0x10, //10th
+                            0x04, //April
+                            0x17};//2017
 
 enum state {                        //Lists the states for switch/case
     STANDBY,
@@ -53,7 +53,10 @@ enum state {                        //Lists the states for switch/case
     OPERATION_END,
     DATETIME,
     BOTTLECOUNT,
-    RUNTIME
+    RUNTIME,
+    SAVE,
+    DELETE,
+    MEMORY
 };
 enum state curr_state;
 
@@ -100,6 +103,7 @@ void main(void) {
     unsigned char end_time[7];
     unsigned char bot_count[4];
     unsigned char step_state[2];
+    unsigned char mem[1];
     
     
     I2C_Master_Init(10000); //Initialize I2C Master with 100KHz clock
@@ -109,17 +113,29 @@ void main(void) {
     initLCD();
     __lcd_home();
     
+    if (eeprom_readbyte(20) == 0xFF){
+        eeprom_writebyte(20, 20);
+        eeprom_writebyte(21, 0);
+        eeprom_writebyte(22, 0);
+        eeprom_writebyte(23, 0);
+        eeprom_writebyte(24, 0);
+    }
+    
     printf("Press 1 to begin operation");   //Starting Message
     curr_state = STANDBY;
     bot_type = O;
+    int temp = 0;
+    char pressed;
     while (1){
         switch(curr_state){
             case OPERATION_END:             //Check for '*' Press
                 operation_end(step_state);
                 break;
             case OPERATION:                 //Check for '1' Press
+                mem[0] = 21;
                 init_operation(start_time, time, bot_count, step_state);   
                 update_time(end_time);
+                temp = 0;
                 break;
             case DATETIME:                  //Check for '4' Press
                 date_time(time);
@@ -130,13 +146,49 @@ void main(void) {
             case RUNTIME:                   //Check for '2' Press
                 runtime(start_time, end_time);
                 break;
+            case SAVE:                    //Check for '5' Press
+                if (temp == 0){
+                    eeprom_writebyte((eeprom_readbyte(20) + 1), bot_count[0]);
+                    eeprom_writebyte((eeprom_readbyte(20) + 2), bot_count[1]);
+                    eeprom_writebyte((eeprom_readbyte(20) + 3), bot_count[2]);
+                    eeprom_writebyte((eeprom_readbyte(20) + 4), bot_count[3]);
+                    eeprom_writebyte(20, (eeprom_readbyte(20) + 4));
+                    __lcd_home();
+                    printf("Saved           ");
+                    __lcd_newline();
+                    printf("                ");
+                    temp = 1;
+                }
+                break;
+            case DELETE:
+                __lcd_home();
+                printf("Deleted         ");
+                __lcd_newline();
+                printf("                ");
+                break;
+            case MEMORY:
+                __lcd_home();
+                printf("Y  |Ync|E  |Enc");
+                __lcd_newline();
+                printf("%u|%u|%u|%u|%u|%u", eeprom_readbyte(mem[0]), eeprom_readbyte(mem[0]+1), eeprom_readbyte(mem[0]+2), eeprom_readbyte(mem[0]+3), eeprom_readbyte(20), mem[0]);
+                if (PORTBbits.RB1 == 1){
+                    while (PORTBbits.RB1 == 1){
+                        pressed = keys[(PORTB & 0xF0)>>4];
+                    }
+                    if ((mem[0] > 21) && pressed == '8'){
+                        mem[0] -= 4;
+                    }
+                    else if ((mem[0] < eeprom_readbyte(20) - 3) && pressed == '9'){
+                        mem[0] += 4;
+                    }
+                }
         }
         __delay_ms(100);
     }
     return;
 }
 
-void interrupt keypressed(void) {           //Interrupt Enable for Keys
+void interrupt keypressed(unsigned char mem[]) {           //Interrupt Enable for Keys
     if(INT1IF){
         switch((PORTB & 0xF0) >> 4){
             case 0b1100:                    //Key Press *
@@ -169,6 +221,25 @@ void interrupt keypressed(void) {           //Interrupt Enable for Keys
                 break;
             case 0b0100:                    //Key Press 4
                 curr_state = DATETIME;
+                bot_type = O;
+                break;
+            case 0b0101:
+                curr_state = SAVE;
+                bot_type = O;
+                break;
+            case 0b0110:
+                if (eeprom_readbyte(20) > 0){
+                    eeprom_writebyte((eeprom_readbyte(20) + 1), 0);
+                    eeprom_writebyte((eeprom_readbyte(20) + 2), 0);
+                    eeprom_writebyte((eeprom_readbyte(20) + 19), 0);
+                    eeprom_writebyte((eeprom_readbyte(20) + 20), 0);
+                    eeprom_writebyte(20, (eeprom_readbyte(20) - 4));
+                }
+                curr_state = DELETE;
+                bot_type = O;
+                break;
+            case 0b1000:
+                curr_state = MEMORY;
                 bot_type = O;
                 break;
             default:
